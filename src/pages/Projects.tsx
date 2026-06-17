@@ -5,10 +5,12 @@ import type { ProjectStatus } from '../types';
 import Modal from '../components/Modal';
 import Badge from '../components/Badge';
 import { useProjects } from '../hooks/useProjects';
+import { useProject } from '../contexts/ProjectContext';
 import { getDataProvider } from '../providers';
 
 export default function Projects() {
   const { data: rawProjects, loading, error, refetch } = useProjects();
+  const { refreshProjects } = useProject();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<ProjectStatus | 'All'>('All');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -48,9 +50,9 @@ export default function Projects() {
         code,
         name,
         status,
-        start_date: startDate || null,
-        end_date: expectedEndDate || null,
-        target_notes: targetNotes || null,
+        startDate: startDate || null,
+        endDate: expectedEndDate || null,
+        targetNotes: targetNotes || null,
       };
 
       if (editingProject) {
@@ -60,6 +62,7 @@ export default function Projects() {
       }
       setIsModalOpen(false);
       refetch();
+      await refreshProjects();
       resetForm();
     } catch (err: any) {
       setSaveError(err.message || 'Gagal menyimpan project');
@@ -75,7 +78,7 @@ export default function Projects() {
     setStatus(project.status || 'Draft');
     setStartDate(project.startDate || project.start_date || '');
     setExpectedEndDate(project.endDate || project.end_date || project.expected_end_date || '');
-    setTargetNotes(project.target_notes || '');
+    setTargetNotes(project.targetNotes || project.target_notes || '');
     setSaveError(null);
     setIsModalOpen(true);
   };

@@ -83,6 +83,7 @@ export class SupabaseProjectRepository implements ProjectRepository {
       status: dbRow.status,
       startDate: dbRow.start_date,
       endDate: dbRow.end_date,
+      targetNotes: dbRow.target_notes,
       createdAt: dbRow.created_at,
       updatedAt: dbRow.updated_at
     };
@@ -97,6 +98,7 @@ export class SupabaseProjectRepository implements ProjectRepository {
     if (feObj.status !== undefined) dbObj.status = feObj.status;
     if (feObj.startDate !== undefined) dbObj.start_date = feObj.startDate;
     if (feObj.endDate !== undefined) dbObj.end_date = feObj.endDate;
+    if (feObj.targetNotes !== undefined) dbObj.target_notes = feObj.targetNotes;
     return dbObj;
   }
 }
