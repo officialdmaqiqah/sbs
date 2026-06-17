@@ -1,0 +1,1 @@
+[{"supplier_id":"SUPP-1","project_id":"PROJ-1","bill_date":"2024-01-05","due_date":"2024-02-05","total_amount":2000000,"receipt_id":"GR-1","bill_number":"BILL-920870","status":"Partially Paid","paid_amount":1000000,"outstanding_amount":1000000,"created_at":"2026-06-11T03:52:00.873Z","created_by":"Tester","id":"jnslem1xpmq8yoaqx"}]

@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  
+  /* Navy (Primary) */
+  --color-navy-50: #f0f4f8;
+  --color-navy-100: #d9e2ec;
+  --color-navy-500: #334e68;
+  --color-navy-600: #243b53;
+  --color-navy-700: #102a43;
+  --color-navy-800: #0a1e32;
+  --color-navy-900: #061224;
+  
+  /* Green (Accent/Success) */
+  --color-sbs-green-50: #f0fdf4;
+  --color-sbs-green-500: #22c55e;
+  --color-sbs-green-600: #16a34a;
+  
+  /* Gold (Accent) */
+  --color-sbs-gold-50: #fefce8;
+  --color-sbs-gold-500: #eab308;
+  --color-sbs-gold-600: #ca8a04;
+  
+  /* Brand mappings */
+  --color-brand-50: var(--color-navy-50);
+  --color-brand-100: var(--color-navy-100);
+  --color-brand-500: var(--color-navy-500);
+  --color-brand-600: var(--color-navy-600);
+  --color-brand-700: var(--color-navy-700);
+}
+
+body {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+/* Custom Premium Utilities */
+@layer utilities {
+  .glass-card {
+    @apply bg-white/95 backdrop-blur-md border border-white/20 shadow-lg shadow-slate-200/50 rounded-2xl;
+  }
+  
+  .glass-card-dark {
+    @apply bg-navy-900/95 backdrop-blur-md border border-navy-700/50 shadow-xl shadow-navy-900/50 rounded-2xl;
+  }
+  
+  .premium-hover {
+    @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+  }
+  
+  .table-wrapper {
+    @apply ring-1 ring-slate-200 shadow-sm rounded-xl overflow-hidden bg-white;
+  }
+  
+  .table-header {
+    @apply bg-slate-50 text-xs font-semibold uppercase text-slate-500 tracking-wider;
+  }
+  
+  .table-row-hover {
+    @apply hover:bg-slate-50 transition-colors duration-200;
+  }
+
+  /* Custom Scrollbar for sleekness */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+}

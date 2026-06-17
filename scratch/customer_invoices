@@ -1,0 +1,1 @@
+[{"customer_id":"CUST-1","project_id":"PROJ-1","invoice_date":"2024-01-05","due_date":"2024-02-05","total_amount":1000000,"delivery_id":"DO-1","invoice_number":"INV-920696","status":"Paid","paid_amount":1000000,"dp_applied":200000,"outstanding_amount":0,"created_at":"2026-06-11T03:52:00.698Z","created_by":"Tester","id":"pg6x601s6mq8yoam2"}]
