@@ -35,6 +35,29 @@ body {
   color: #0f172a;
 }
 
+@layer base {
+  input[type="text"],
+  input[type="number"],
+  input[type="email"],
+  input[type="password"],
+  input[type="date"],
+  select,
+  textarea {
+    @apply w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-slate-800 text-sm transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 hover:border-slate-300 outline-none shadow-sm;
+  }
+  
+  /* Custom select appearance to give it breathing room too */
+  select {
+    @apply pr-8; /* Room for the dropdown arrow */
+  }
+
+  /* Soften placeholders */
+  ::placeholder {
+    @apply text-slate-400;
+  }
+}
+
+
 /* Custom Premium Utilities */
 @layer utilities {
   .glass-card {
