@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { AlertCircle, CheckCircle, Printer, ArrowLeft } from 'lucide-react';
 import Badge from '../components/Badge';
+import Modal from '../components/Modal';
 import { useProject } from '../contexts/ProjectContext';
 
 export default function ProjectClosing() {
@@ -23,6 +24,7 @@ export default function ProjectClosing() {
   const [calculation, setCalculation] = useState<ClosingCalculation | null>(null);
   const [existingClosing, setExistingClosing] = useState<any>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState<{title: string, message: string, onConfirm: () => void} | null>(null);
 
   useEffect(() => {
     async function init() {
@@ -43,18 +45,25 @@ export default function ProjectClosing() {
     init();
   }, [id]);
 
-  const handleSave = async () => {
+  const handleSaveClick = () => {
     if (!calculation) return;
     if (readiness && (!readiness.isReady || readiness.hasReceivables || readiness.hasPayables)) {
-      if (!confirm('Masih ada warning pada readiness check. Anda yakin ingin menutup project ini sekarang? (Tindakan ini tidak bisa dibatalkan)')) {
-        return;
-      }
+      setConfirmDialog({
+        title: 'Konfirmasi Tutup Buku (Warning)',
+        message: 'Masih ada warning pada readiness check. Anda yakin ingin menutup project ini sekarang? (Tindakan ini tidak bisa dibatalkan)',
+        onConfirm: processSave
+      });
     } else {
-      if (!confirm('Anda yakin ingin memfinalisasi Tutup Buku? Semua data akan dikunci.')) {
-        return;
-      }
+      setConfirmDialog({
+        title: 'Konfirmasi Finalisasi',
+        message: 'Anda yakin ingin memfinalisasi Tutup Buku? Semua data akan dikunci.',
+        onConfirm: processSave
+      });
     }
+  };
 
+  const processSave = async () => {
+    setConfirmDialog(null);
     setIsSaving(true);
     const success = await saveClosing(calculation);
     if (success) {
@@ -66,6 +75,7 @@ export default function ProjectClosing() {
     }
     setIsSaving(false);
   };
+
 
   const handlePrint = () => {
     window.print();
@@ -265,7 +275,7 @@ export default function ProjectClosing() {
             </p>
             {isAdminOrCEO ? (
               <button 
-                onClick={handleSave} 
+                onClick={handleSaveClick} 
                 disabled={isSaving || !calculation} 
                 className="w-full bg-brand-600 text-white px-4 py-3 rounded-md font-bold hover:bg-brand-700 disabled:opacity-50"
               >
