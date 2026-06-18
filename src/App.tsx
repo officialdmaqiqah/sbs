@@ -99,11 +99,8 @@ function App() {
             <Route path="/sales" element={<Sales />} />
             <Route path="/sales/orders" element={<SalesOrders />} />
             <Route path="/sales/orders/:id" element={<SalesOrderDetail />} />
-            <Route path="/sales/pos" element={<PlaceholderPage title="Quick Sale / POS" message="Quick Sale akan dipakai untuk input penjualan cepat setelah uji internal 3-7 hari." />} />
-            <Route path="/sales/customers" element={<PlaceholderPage title="Data Customer" message="Fitur manajemen Customer sedang disiapkan untuk iterasi selanjutnya." />} />
             
             {/* Distribution */}
-            <Route path="/distribution" element={<PlaceholderPage title="Distribusi" message="Dashboard distribusi" />} />
             <Route path="/distribution/shipments" element={<Distribution />} />
             <Route path="/distribution/shipments/:id" element={<DistributionDetail />} />
             <Route path="/distribution/shipments/:id/waybill" element={<WaybillPrint />} />
@@ -114,17 +111,6 @@ function App() {
             <Route path="/operations/cage-production" element={<ProduksiKandang />} />
             <Route path="/operations/feed-mixing" element={<FeedMixing />} />
             <Route path="/operations/production/:id" element={<ProductionDetail />} />
-
-            {/* Inventory Placeholders */}
-            <Route path="/inventory/materials" element={<PlaceholderPage title="Bahan Kandang" message="Fitur Manajemen Bahan Kandang telah digabungkan ke dalam halaman utama Stok Barang." />} />
-            <Route path="/inventory/movements" element={<PlaceholderPage title="Riwayat Mutasi" message="Riwayat mutasi saat ini tergabung di fitur Kartu Stok pada halaman utama Stok." />} />
-            <Route path="/inventory/in" element={<PlaceholderPage title="Stok Masuk" message="Gunakan fitur Pembelian atau Terima Barang untuk mencatat Stok Masuk otomatis." />} />
-            <Route path="/inventory/out" element={<PlaceholderPage title="Stok Keluar" message="Gunakan fitur Penjualan untuk mencatat Stok Keluar otomatis." />} />
-            <Route path="/inventory/opname" element={<PlaceholderPage title="Stok Opname" message="Fitur Stok Opname sudah tergabung di halaman utama Stok (tab Stock Opname)." />} />
-
-            {/* Purchase Placeholders */}
-            <Route path="/purchase/receipts" element={<PlaceholderPage title="Terima Barang" message="Fitur ini akan diaktifkan setelah integrasi dengan sistem Gudang." />} />
-            <Route path="/purchase/suppliers" element={<PlaceholderPage title="Data Supplier" message="Fitur manajemen Supplier sedang disiapkan untuk iterasi selanjutnya." />} />
 
             <Route path="/finance" element={<FinanceLayout />}>
               <Route index element={<FinanceOverview />} />
@@ -150,7 +136,6 @@ function App() {
 
             <Route path="/settings">
               <Route path="users" element={<Users />} />
-              <Route path="company" element={<PlaceholderPage title="Data Usaha" message="Pengaturan Data Usaha belum diaktifkan pada versi Internal Beta." />} />
               <Route path="advanced-features" element={<AdvancedFeatures />} />
             </Route>
 

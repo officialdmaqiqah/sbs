@@ -46,13 +46,10 @@ const navigation: MenuItem[] = [
     roles: ['CEO_ADMIN', 'PRODUKSI'],
     children: [
       { name: 'Stok Barang', href: '/inventory' },
-      { name: 'Stok Ayam', href: '/inventory/materials' },
       { name: 'Bahan Kandang', href: '/purchase' },
       { name: 'Bahan Pakan', href: '/purchase' },
       { name: 'Produksi Kandang', href: '/operations/cage-production' },
       { name: 'Racik Pakan', href: '/operations/feed-mixing' },
-      { name: 'Stok Opname', href: '/inventory/opname' },
-      { name: 'Riwayat Mutasi', href: '/inventory/movements' },
     ]
   },
   {
@@ -62,7 +59,6 @@ const navigation: MenuItem[] = [
     children: [
       { name: 'Produk & Paket', href: '/products' },
       { name: 'Order Penjualan', href: '/sales/orders' },
-      { name: 'Customer', href: '/sales/customers' },
       { name: 'Piutang Customer', href: '/finance/ar/aging' },
       { name: 'Terima Pembayaran', href: '/finance/ar/payments' },
     ]
@@ -109,8 +105,6 @@ const navigation: MenuItem[] = [
     roles: ['CEO_ADMIN'],
     children: [
       { name: 'User & Role', href: '/settings/users' },
-      { name: 'Data Usaha', href: '/settings/company' },
-      { name: 'Supplier', href: '/purchase/suppliers' },
       { name: 'Setup Saldo Awal', href: '/setup/initial-balance' },
       { name: 'Akuntansi Lanjutan', href: '/settings/advanced-features' },
     ]
