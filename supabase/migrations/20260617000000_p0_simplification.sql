@@ -2,7 +2,7 @@
 ALTER TABLE cash_bank_accounts ALTER COLUMN account_id DROP NOT NULL;
 
 -- 002. Create cash_bank_mutations
-CREATE TABLE cash_bank_mutations (
+CREATE TABLE IF NOT EXISTS cash_bank_mutations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
     project_id UUID NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,

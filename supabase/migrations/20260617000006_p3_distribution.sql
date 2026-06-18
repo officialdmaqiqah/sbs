@@ -1,15 +1,15 @@
 -- 20260617000006_p3_distribution.sql
 
 -- 1. Modify delivery_orders to serve as distribution_shipments
-ALTER TABLE delivery_orders ADD COLUMN IF NOT EXISTS project_id UUID REFERENCES projects(id) ON DELETE RESTRICT;
-ALTER TABLE delivery_orders ADD COLUMN IF NOT EXISTS driver_name VARCHAR(255);
-ALTER TABLE delivery_orders ADD COLUMN IF NOT EXISTS vehicle_number VARCHAR(100);
-ALTER TABLE delivery_orders ADD COLUMN IF NOT EXISTS delivery_address TEXT;
-ALTER TABLE delivery_orders ADD COLUMN IF NOT EXISTS failure_reason TEXT;
-ALTER TABLE delivery_orders ADD COLUMN IF NOT EXISTS recipient_name VARCHAR(255);
+ALTER TABLE IF EXISTS delivery_orders ADD COLUMN IF NOT EXISTS project_id UUID REFERENCES projects(id) ON DELETE RESTRICT;
+ALTER TABLE IF EXISTS delivery_orders ADD COLUMN IF NOT EXISTS driver_name VARCHAR(255);
+ALTER TABLE IF EXISTS delivery_orders ADD COLUMN IF NOT EXISTS vehicle_number VARCHAR(100);
+ALTER TABLE IF EXISTS delivery_orders ADD COLUMN IF NOT EXISTS delivery_address TEXT;
+ALTER TABLE IF EXISTS delivery_orders ADD COLUMN IF NOT EXISTS failure_reason TEXT;
+ALTER TABLE IF EXISTS delivery_orders ADD COLUMN IF NOT EXISTS recipient_name VARCHAR(255);
 
 -- Make location_id nullable since we don't strictly use complex warehouse locations right now
-ALTER TABLE delivery_orders ALTER COLUMN location_id DROP NOT NULL;
+ALTER TABLE IF EXISTS delivery_orders ALTER COLUMN location_id DROP NOT NULL;
 
 -- 2. Create distribution_costs table
 CREATE TABLE IF NOT EXISTS distribution_costs (

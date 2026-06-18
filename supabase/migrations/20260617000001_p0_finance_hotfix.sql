@@ -52,12 +52,10 @@ CREATE POLICY "CEO and Admin can manage cash bank accounts"
 ON cash_bank_accounts
 FOR ALL
 USING (
-  (SELECT auth.jwt()->>'role' = 'authenticated') AND
-  (SELECT user_role FROM user_profiles WHERE id = auth.uid()) IN ('Admin', 'CEO')
+  current_user_has_role('CEO_ADMIN')
 )
 WITH CHECK (
-  (SELECT auth.jwt()->>'role' = 'authenticated') AND
-  (SELECT user_role FROM user_profiles WHERE id = auth.uid()) IN ('Admin', 'CEO')
+  current_user_has_role('CEO_ADMIN')
 );
 
 -- Policy 2: Finance
@@ -65,8 +63,7 @@ CREATE POLICY "Finance can view and use cash bank accounts"
 ON cash_bank_accounts
 FOR SELECT
 USING (
-  (SELECT auth.jwt()->>'role' = 'authenticated') AND
-  (SELECT user_role FROM user_profiles WHERE id = auth.uid()) = 'Finance'
+  current_user_has_role('FINANCE')
 );
 
 
