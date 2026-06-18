@@ -22,6 +22,8 @@ export default function SalesOrders() {
   // Form State
   const [customerId, setCustomerId] = useState('');
   const [newCustomerName, setNewCustomerName] = useState('');
+  const [newCustomerPhone, setNewCustomerPhone] = useState('');
+  const [newCustomerAddress, setNewCustomerAddress] = useState('');
   const [soDate, setSoDate] = useState(new Date().toISOString().split('T')[0]);
   const [paymentMethod, setPaymentMethod] = useState('Tunai');
   const [selectedProductId, setSelectedProductId] = useState('');
@@ -53,7 +55,11 @@ export default function SalesOrders() {
       let finalCustomerId = customerId;
       if (customerId === 'NEW') {
         if (!newCustomerName) throw new Error('Nama customer baru wajib diisi');
-        const cust = await addCustomer({ name: newCustomerName });
+        const cust = await addCustomer({ 
+          name: newCustomerName,
+          phone: newCustomerPhone,
+          address: newCustomerAddress
+        });
         finalCustomerId = cust.id;
       }
 
@@ -189,9 +195,21 @@ export default function SalesOrders() {
           </div>
 
           {customerId === 'NEW' && (
-            <div>
-              <label className="block text-sm font-medium text-slate-700">Nama Customer Baru</label>
-              <input type="text" required value={newCustomerName} onChange={e => setNewCustomerName(e.target.value)} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" />
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700">Nama Customer Baru</label>
+                <input type="text" required value={newCustomerName} onChange={e => setNewCustomerName(e.target.value)} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700">No. WhatsApp</label>
+                  <input type="text" value={newCustomerPhone} onChange={e => setNewCustomerPhone(e.target.value)} placeholder="Contoh: 0812..." className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700">Alamat Antar</label>
+                  <input type="text" value={newCustomerAddress} onChange={e => setNewCustomerAddress(e.target.value)} placeholder="Jalan / Perumahan..." className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" />
+                </div>
+              </div>
             </div>
           )}
 
