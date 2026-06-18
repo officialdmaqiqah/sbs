@@ -6,9 +6,10 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   children: ReactNode;
+  maxWidth?: string;
 }
 
-export default function Modal({ isOpen, onClose, title, children }: ModalProps) {
+export default function Modal({ isOpen, onClose, title, children, maxWidth = 'max-w-lg' }: ModalProps) {
   if (!isOpen) return null;
 
   return (
@@ -18,7 +19,7 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
         onClick={onClose}
       />
       
-      <div className="relative bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden transform transition-all">
+      <div className={`relative bg-white rounded-xl shadow-xl w-full ${maxWidth} overflow-hidden transform transition-all`}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
           <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
           <button 

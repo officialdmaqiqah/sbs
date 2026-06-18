@@ -547,7 +547,7 @@ export default function Purchase() {
       </Modal>
 
       {/* PO Modal */}
-      <Modal isOpen={isPOModalOpen} onClose={() => setIsPOModalOpen(false)} title="Buat Purchase Order Baru">
+      <Modal isOpen={isPOModalOpen} onClose={() => setIsPOModalOpen(false)} title="Buat Purchase Order Baru" maxWidth="max-w-4xl">
         <form onSubmit={handleSavePO} className="space-y-4 max-h-[80vh] overflow-y-auto px-1 pb-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
