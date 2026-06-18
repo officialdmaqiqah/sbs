@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Users as UsersIcon, UserPlus, CheckCircle, XCircle } from 'lucide-react';
-import { useUsers, useUpdateUserRole, useUpdateUserStatus, useCreateUser } from '../../hooks/useUsers';
+import { useUsers, useUpdateUserRole, useUpdateUserStatus } from '../../hooks/useUsers';
 import { useAuth } from '../../contexts/AuthContext';
 
 const ROLE_LABELS: Record<string, string> = {
@@ -18,26 +18,9 @@ export default function Users() {
   const { data: users, isLoading, error, refetch } = useUsers();
   const updateRoleMutation = useUpdateUserRole(() => refetch());
   const updateStatusMutation = useUpdateUserStatus(() => refetch());
-  const createUserMutation = useCreateUser(() => refetch());
-
   const [showInvite, setShowInvite] = useState(false);
-  const [inviteForm, setInviteForm] = useState({ name: '', email: '', role: 'WORKER', status: true });
-  const [inviteMessage, setInviteMessage] = useState<string | null>(null);
 
-  const handleInvite = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const res = await createUserMutation.mutateAsync(inviteForm);
-      if (res.requireDashboard) {
-        setInviteMessage(res.message);
-      } else {
-        setShowInvite(false);
-        setInviteForm({ name: '', email: '', role: 'WORKER', status: true });
-      }
-    } catch (err: any) {
-      alert(`Gagal menambah user: ${err.message}`);
-    }
-  };
+
 
   const handleRoleChange = (userId: string, newRole: string) => {
     if (userId === profile?.id && newRole !== 'CEO_ADMIN') {

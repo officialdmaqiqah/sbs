@@ -185,7 +185,6 @@ export default function Login() {
               © {new Date().getFullYear()} Sultan Berkah Sejahtera. All rights reserved.
              </p>
           </div>
-          </div>
         </div>
       </div>
     </div>

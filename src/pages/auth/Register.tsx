@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
-import { ShieldAlert, LogIn, Lock, Mail, UserPlus, User } from 'lucide-react';
+import { ShieldAlert, Lock, Mail, UserPlus, User } from 'lucide-react';
 import { environment } from '../../config/environment';
 
 export default function Register() {
@@ -13,7 +13,6 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   
-  const navigate = useNavigate();
   const location = useLocation();
   const { session } = useAuth();
 
@@ -33,7 +32,7 @@ export default function Register() {
         throw new Error('Pendaftaran tidak tersedia dalam mode lokal.');
       }
 
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
