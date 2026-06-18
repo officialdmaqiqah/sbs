@@ -84,46 +84,20 @@ export default function Users() {
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">Tambah Pengguna Baru</h3>
           
-          {inviteMessage && (
-            <div className="mb-4 rounded-md bg-blue-50 p-4">
-              <div className="flex">
-                <div className="ml-3 flex-1 md:flex md:justify-between">
-                  <p className="text-sm text-blue-700">{inviteMessage}</p>
-                </div>
+          <div className="mb-4 rounded-md bg-blue-50 p-4 border border-blue-100">
+            <div className="flex">
+              <div className="ml-3 flex-1">
+                <p className="text-sm text-blue-700">
+                  <strong>Cara Mudah Menambah Staf:</strong> Minta staf Anda untuk membuka halaman Login aplikasi ini, lalu klik tombol <strong>"Daftar di sini"</strong>. <br/>
+                  Setelah mereka mendaftar dan berhasil masuk ke sistem, profil mereka akan otomatis muncul di tabel bawah. Anda tinggal mengubah Role-nya menjadi posisi yang sesuai (misal: Finance/Produksi/Sales).
+                </p>
               </div>
             </div>
-          )}
+          </div>
 
-          <form onSubmit={handleInvite} className="space-y-4 max-w-xl">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium leading-6 text-gray-900">Alamat Email</label>
-              <div className="mt-2">
-                <input type="email" id="email" required value={inviteForm.email} onChange={e => setInviteForm({...inviteForm, email: e.target.value})} className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand-600 sm:text-sm sm:leading-6" />
-              </div>
-            </div>
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium leading-6 text-gray-900">Nama Lengkap (Opsional untuk Local)</label>
-              <div className="mt-2">
-                <input type="text" id="name" value={inviteForm.name} onChange={e => setInviteForm({...inviteForm, name: e.target.value})} className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand-600 sm:text-sm sm:leading-6" />
-              </div>
-            </div>
-            <div>
-              <label htmlFor="role" className="block text-sm font-medium leading-6 text-gray-900">Pilih Role</label>
-              <div className="mt-2">
-                <select id="role" value={inviteForm.role} onChange={e => setInviteForm({...inviteForm, role: e.target.value})} className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-brand-600 sm:text-sm sm:leading-6">
-                  {Object.entries(ROLE_LABELS).map(([code, label]) => (
-                    <option key={code} value={code}>{label}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            <div className="flex gap-3 pt-2">
-              <button type="submit" disabled={createUserMutation.isPending} className="rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500">
-                {createUserMutation.isPending ? 'Memproses...' : 'Simpan / Invite'}
-              </button>
-              <button type="button" onClick={() => {setShowInvite(false); setInviteMessage(null);}} className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">Tutup</button>
-            </div>
-          </form>
+          <div className="pt-2">
+            <button type="button" onClick={() => setShowInvite(false)} className="rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">Tutup Petunjuk</button>
+          </div>
         </div>
       )}
 
