@@ -12,6 +12,7 @@ export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'team' | 'capital'>('dashboard');
 
   const { activeProject, setActiveProject } = useProject();
@@ -53,14 +54,27 @@ export default function ProjectDetail() {
         .select('*, investors(name)')
         .eq('project_id', projectId);
       setInvestments(invData || []);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error loading project details', err);
+      setError('Project tidak ditemukan atau mungkin sudah dihapus.');
     } finally {
       setLoading(false);
     }
   };
 
   const isCurrentActive = activeProject?.id === project?.id;
+
+  if (error) {
+    return (
+      <div className="p-8 text-center bg-white rounded-xl shadow-sm border border-slate-200 space-y-4">
+        <h3 className="text-lg font-bold text-slate-800">Ups, ada yang salah!</h3>
+        <p className="text-slate-600">{error}</p>
+        <Link to="/projects" className="inline-block mt-4 text-brand-600 hover:text-brand-800 font-medium">
+          &larr; Kembali ke Daftar Project
+        </Link>
+      </div>
+    );
+  }
 
   // Render Tabs Logic (will implement sub-components later)
   return (
