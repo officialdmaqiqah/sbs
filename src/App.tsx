@@ -10,8 +10,6 @@ import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
 import AuthCallback from './pages/auth/AuthCallback';
 import Unauthorized from './pages/auth/Unauthorized';
-import PlaceholderPage from './pages/PlaceholderPage';
-
 import Users from './pages/admin/Users';
 import Roles from './pages/admin/Roles';
 import Permissions from './pages/admin/Permissions';
