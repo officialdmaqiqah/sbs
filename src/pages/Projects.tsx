@@ -202,10 +202,10 @@ export default function Projects() {
                     {getStatusBadge(project.status)}
                   </td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500">
-                    {project.start_date || '-'}
+                    {project.startDate || '-'}
                   </td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500">
-                    {project.expected_end_date || '-'}
+                    {project.endDate || '-'}
                   </td>
                   <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                     <button onClick={() => openEditModal(project)} className="text-brand-600 hover:text-brand-900 mr-4">
