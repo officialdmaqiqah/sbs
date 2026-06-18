@@ -159,7 +159,7 @@ export default function ProjectDetail() {
           <>
             {activeTab === 'dashboard' && <ProjectDashboard project={project} mutations={mutations} />}
             {activeTab === 'team' && <ProjectTeam projectId={project?.id!} teamMembers={teamMembers} reload={() => loadProjectData(project?.id!)} />}
-            {activeTab === 'capital' && <ProjectCapital projectId={project?.id!} investments={investments} reload={() => loadProjectData(project?.id!)} accounts={accounts} />}
+            {activeTab === 'capital' && <ProjectCapital projectId={project?.id!} investments={investments} reload={() => loadProjectData(project?.id!)} accounts={accounts} teamMembers={teamMembers} />}
           </>
         )}
       </div>
@@ -309,7 +309,7 @@ function ProjectTeam({ projectId, teamMembers, reload }: { projectId: string, te
   );
 }
 
-function ProjectCapital({ projectId, investments, reload, accounts }: { projectId: string, investments: any[], reload: () => void, accounts: any[] }) {
+function ProjectCapital({ projectId, investments, reload, accounts, teamMembers }: { projectId: string, investments: any[], reload: () => void, accounts: any[], teamMembers: any[] }) {
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState('');
   const [amount, setAmount] = useState<number | string>('');
@@ -322,15 +322,27 @@ function ProjectCapital({ projectId, investments, reload, accounts }: { projectI
     try {
       const { data: orgData } = await supabase.from('projects').select('organization_id').eq('id', projectId).single();
       
-      // Upsert Investor if name doesn't exist to keep simple
-      const { data: invData } = await supabase.from('investors').insert({
-        organization_id: orgData?.organization_id || '00000000-0000-0000-0000-000000000000',
-        name: name
-      }).select().single();
+      let invId;
+      // Check if investor already exists
+      const { data: existingInv } = await supabase.from('investors')
+        .select('id')
+        .ilike('name', name)
+        .eq('organization_id', orgData?.organization_id)
+        .maybeSingle();
+
+      if (existingInv) {
+        invId = existingInv.id;
+      } else {
+        const { data: invData } = await supabase.from('investors').insert({
+          organization_id: orgData?.organization_id,
+          name: name
+        }).select().single();
+        invId = invData.id;
+      }
 
       await supabase.from('project_investments').insert({
         project_id: projectId,
-        investor_id: invData.id,
+        investor_id: invId,
         amount: Number(amount),
         payment_method: paymentMethod,
         cash_bank_id: cashBankId || null,
@@ -416,8 +428,21 @@ function ProjectCapital({ projectId, investments, reload, accounts }: { projectI
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title="Input Modal Investor">
         <form onSubmit={handleAdd} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700">Nama Investor Internal</label>
-            <input required type="text" className="mt-1 block w-full rounded-md border-slate-300 py-2 px-3 text-sm border focus:ring-brand-500 focus:border-brand-500" value={name} onChange={e => setName(e.target.value)} />
+            <label className="block text-sm font-medium text-slate-700 mb-1">Nama Investor Internal</label>
+            <input 
+              required 
+              type="text" 
+              list="team-members"
+              placeholder="Pilih dari tim atau ketik nama baru..."
+              className="block w-full rounded-md border-slate-300 py-2 px-3 text-sm border focus:ring-brand-500 focus:border-brand-500" 
+              value={name} 
+              onChange={e => setName(e.target.value)} 
+            />
+            <datalist id="team-members">
+              {teamMembers.map(tm => (
+                <option key={tm.id} value={tm.profiles?.full_name} />
+              ))}
+            </datalist>
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700">Nominal Modal (Rp)</label>
