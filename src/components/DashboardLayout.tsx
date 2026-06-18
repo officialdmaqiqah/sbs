@@ -36,7 +36,6 @@ const navigation: MenuItem[] = [
     roles: ['CEO_ADMIN', 'FINANCE', 'MARKETING', 'PRODUKSI'],
     children: [
       { name: 'Daftar Project', href: '/projects' },
-      { name: 'Team & Modal', href: '/projects/investors' },
       { name: 'Tutup Buku & Bagi Hasil', href: '/finance/project-closing' },
     ]
   },
