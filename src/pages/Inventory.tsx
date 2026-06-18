@@ -47,7 +47,7 @@ export default function Inventory() {
   const [opnameItems, setOpnameItems] = useState<StockOpnameItem[]>([]);
 
   // Roles (Mock)
-  const [mockRole, setMockRole] = useState<'Operator' | 'Reviewer' | 'Admin'>('Operator');
+  const mockRole = ['CEO_ADMIN'].includes(profile?.role || '') ? 'Admin' : ['FINANCE'].includes(profile?.role || '') ? 'Reviewer' : 'Operator';
 
   // Kartu Stok State
   const [selectedItemId, setSelectedItemId] = useState<string>('');
@@ -319,13 +319,6 @@ export default function Inventory() {
             <option value="ALL">Semua Project</option>
             <option value="NULL">Non-Project (Global)</option>
             {projects?.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
-          <div className="w-px h-6 bg-slate-300 mx-1"></div>
-          <label className="text-sm font-medium text-slate-700">Simulasi Role:</label>
-          <select data-testid="mock-role-select" value={mockRole} onChange={(e) => setMockRole(e.target.value as any)} className="rounded-md border-0 py-1.5 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-sm font-bold">
-            <option value="Operator">Operator</option>
-            <option value="Reviewer">Reviewer / Pemeriksa</option>
-            <option value="Admin">CEO / Admin</option>
           </select>
         </div>
       </div>
