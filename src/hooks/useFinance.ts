@@ -42,7 +42,12 @@ export function useCashBankAccounts() {
       const { supabase } = await import('../lib/supabase');
       const { data, error } = await supabase.from('cash_bank_accounts').select('*');
       if (error) throw error;
-      return data;
+      return data.map((acc: any) => ({
+        ...acc,
+        account_name: acc.account_name || acc.name,
+        account_code: acc.account_code || acc.code,
+        account_type: acc.account_type || acc.type,
+      }));
     }
     return db.query('cash_bank_accounts', () => true) as CashBankAccount[];
   }, []);
