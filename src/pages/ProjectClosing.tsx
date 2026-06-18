@@ -6,11 +6,16 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { AlertCircle, CheckCircle, Printer, ArrowLeft } from 'lucide-react';
 import Badge from '../components/Badge';
+import { useProject } from '../contexts/ProjectContext';
 
 export default function ProjectClosing() {
-  const { id } = useParams();
+  const { id: urlId } = useParams();
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const { activeProject } = useProject();
+  
+  const id = urlId || activeProject?.id;
+
   const { checkReadiness, calculateProfit, saveClosing, getExistingClosing, loading, error } = useProjectClosing(id);
 
   const [project, setProject] = useState<any>(null);
@@ -66,6 +71,7 @@ export default function ProjectClosing() {
     window.print();
   };
 
+  if (!id) return <div className="p-8 text-center text-slate-500">Silakan pilih Project Aktif dari menu dropdown di atas terlebih dahulu.</div>;
   if (!project) return <div className="p-8 text-center">Memuat Project...</div>;
 
   const isAdminOrCEO = profile?.role === 'CEO_ADMIN';
