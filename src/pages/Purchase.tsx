@@ -5,7 +5,8 @@ import { getDataProvider } from '../providers';
 import { arApService } from '../services/arApService';
 import Modal from '../components/Modal';
 import Badge from '../components/Badge';
-import { Plus, Edit, Search, PackagePlus, AlertCircle } from 'lucide-react';
+import { Plus, Edit, Search, PackagePlus, AlertCircle, Trash2, RotateCcw } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const SUPPLIER_CATEGORIES: SupplierCategory[] = ['Ayam', 'Bahan Kandang', 'Bahan Pakan', 'Vitamin / Obat', 'Peralatan', 'Umum'];
 
@@ -28,6 +29,7 @@ export default function Purchase() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<SupplierCategory | 'All'>('All');
+  const [selectedSupplierIds, setSelectedSupplierIds] = useState<string[]>([]);
 
   // Supplier Form
   const [supForm, setSupForm] = useState<Partial<Supplier>>({
@@ -86,7 +88,42 @@ export default function Purchase() {
       });
     }
     setIsSupplierModalOpen(false);
+    toast.success('Supplier berhasil disimpan');
     loadData();
+  };
+
+  const handleDeleteSupplier = async (id: string, name: string) => {
+    if (!window.confirm(`Hapus supplier ${name}?`)) return;
+    try {
+      const provider = getDataProvider();
+      await provider.getRepository<Supplier>('suppliers').delete(id);
+      toast.success('Supplier berhasil dihapus');
+      loadData();
+    } catch (err: any) {
+      toast.error(err.message || 'Gagal menghapus supplier');
+    }
+  };
+
+  const toggleSupplierSelection = (id: string) => {
+    setSelectedSupplierIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const toggleAllSuppliers = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) setSelectedSupplierIds(filteredSuppliers.map(s => s.id));
+    else setSelectedSupplierIds([]);
+  };
+
+  const handleMassDeleteSupplier = async () => {
+    if (!window.confirm(`Hapus ${selectedSupplierIds.length} supplier terpilih?`)) return;
+    try {
+      const provider = getDataProvider();
+      await Promise.all(selectedSupplierIds.map(id => provider.getRepository<Supplier>('suppliers').delete(id)));
+      setSelectedSupplierIds([]);
+      toast.success(`${selectedSupplierIds.length} supplier berhasil dihapus`);
+      loadData();
+    } catch (err: any) {
+      toast.error(err.message || 'Gagal menghapus beberapa supplier');
+    }
   };
 
   const openAddSupplier = () => {
@@ -322,16 +359,29 @@ export default function Purchase() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h2 className="text-2xl font-bold leading-7 text-slate-900 sm:truncate sm:text-3xl sm:tracking-tight">
+          <h1 className="text-2xl font-bold leading-7 text-slate-900 sm:truncate sm:text-3xl sm:tracking-tight">
             Pengadaan (Purchase)
-          </h2>
+          </h1>
           <p className="mt-1 text-sm text-slate-500">
             Pembelian material, bahan baku, dan peralatan dari supplier.
           </p>
         </div>
         <div className="flex gap-2">
+          {activeTab === 'supplier' && selectedSupplierIds.length > 0 && (
+            <button onClick={handleMassDeleteSupplier} className="inline-flex items-center justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">
+              <Trash2 className="-ml-0.5 mr-2 h-4 w-4" /> Hapus Terpilih ({selectedSupplierIds.length})
+            </button>
+          )}
+          {activeTab === 'supplier' && (
+            <button onClick={() => {
+                setSelectedSupplierIds([]);
+                loadData();
+              }} className="inline-flex items-center justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50">
+              <RotateCcw className="-ml-0.5 mr-2 h-4 w-4" /> Refresh
+            </button>
+          )}
           {activeTab === 'supplier' ? (
             <button
               onClick={openAddSupplier}
@@ -421,31 +471,38 @@ export default function Purchase() {
           <table className="min-w-full divide-y divide-slate-200">
             <thead className="bg-slate-50">
               <tr>
-                <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-slate-900">Kode</th>
+                <th className="py-3.5 pl-4 pr-3 text-left w-12">
+                  <input type="checkbox" className="rounded border-slate-300 text-brand-600 focus:ring-brand-600" checked={filteredSuppliers.length > 0 && selectedSupplierIds.length === filteredSuppliers.length} onChange={toggleAllSuppliers} />
+                </th>
+                <th scope="col" className="py-3.5 px-3 text-left text-sm font-semibold text-slate-900">Kode</th>
                 <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">Nama Supplier</th>
                 <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">Kategori</th>
                 <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">Telepon</th>
                 <th scope="col" className="px-3 py-3.5 text-center text-sm font-semibold text-slate-900">Status</th>
-                <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6"><span className="sr-only">Edit</span></th>
+                <th scope="col" className="px-3 py-3.5 text-center text-sm font-semibold text-slate-900">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 bg-white">
               {filteredSuppliers.map((s) => (
-                <tr key={s.id}>
-                  <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-slate-900">{s.code}</td>
+                <tr key={s.id} className={selectedSupplierIds.includes(s.id) ? 'bg-brand-50' : ''}>
+                  <td className="whitespace-nowrap py-4 pl-4 pr-3">
+                    <input type="checkbox" className="rounded border-slate-300 text-brand-600 focus:ring-brand-600" checked={selectedSupplierIds.includes(s.id)} onChange={() => toggleSupplierSelection(s.id)} />
+                  </td>
+                  <td className="whitespace-nowrap py-4 px-3 text-sm font-medium text-slate-900">{s.code}</td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-900 font-medium">{s.name}</td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500"><Badge variant="info">{s.category}</Badge></td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500">{s.phone || '-'}</td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-center">
                     <Badge variant={((s as any).active ?? s.is_active) ? 'success' : 'default'}>{((s as any).active ?? s.is_active) ? 'Aktif' : 'Nonaktif'}</Badge>
                   </td>
-                  <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                    <button onClick={() => openEditSupplier(s)} className="text-brand-600 hover:text-brand-900"><Edit className="h-4 w-4" /></button>
+                  <td className="whitespace-nowrap px-3 py-4 text-sm text-center">
+                    <button onClick={() => openEditSupplier(s)} className="text-brand-600 hover:text-brand-900 mr-4" title="Edit Supplier"><Edit className="h-4 w-4 inline" /></button>
+                    <button onClick={() => handleDeleteSupplier(s.id, s.name)} className="text-red-500 hover:text-red-700" title="Hapus Supplier"><Trash2 className="h-4 w-4 inline" /></button>
                   </td>
                 </tr>
               ))}
               {filteredSuppliers.length === 0 && (
-                <tr><td colSpan={6} className="py-8 text-center text-sm text-slate-500">Tidak ada supplier ditemukan.</td></tr>
+                <tr><td colSpan={7} className="py-8 text-center text-sm text-slate-500">Tidak ada supplier ditemukan.</td></tr>
               )}
             </tbody>
           </table>
