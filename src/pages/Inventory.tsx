@@ -411,7 +411,7 @@ export default function Inventory() {
             <button onClick={() => refetchBalances()} className="inline-flex items-center justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50">
               <RotateCcw className="-ml-0.5 mr-2 h-4 w-4" /> Refresh Balance
             </button>
-            <button onClick={() => setIsItemModalOpen(true)} className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500">
+            <button onClick={handleOpenAddItem} className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500">
               <Plus className="-ml-0.5 mr-2 h-4 w-4" /> Tambah Barang
             </button>
           </div>
