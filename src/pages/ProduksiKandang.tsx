@@ -4,6 +4,7 @@ import { Plus, Search, Eye } from 'lucide-react';
 import { useProductions } from '../hooks/useProductions';
 import { useProject } from '../contexts/ProjectContext';
 import { useInventoryBalances } from '../hooks/useInventoryBalances';
+import { useItems } from '../hooks/useItems';
 import Modal from '../components/Modal';
 import Badge from '../components/Badge';
 import toast from 'react-hot-toast';
@@ -13,9 +14,15 @@ export default function ProduksiKandang() {
   const { activeProject } = useProject();
   const { data: productions, loading, createProduction } = useProductions('CAGE', activeProject?.id);
   const { data: inventoryItems } = useInventoryBalances({ projectId: activeProject?.id });
+  const { data: allItems } = useItems();
   
-  const bahanKandang = inventoryItems.filter((i:any) => i.item?.category === 'Bahan Kandang' || i.item?.category === 'Peralatan');
-  const kandangJadi = inventoryItems.filter((i:any) => i.item?.category === 'Kandang');
+  const bahanKandang = allItems.filter(i => i.category === 'Bahan Kandang' || i.category === 'Peralatan');
+  const kandangJadi = allItems.filter(i => i.category === 'Kandang');
+
+  const getStock = (itemId: string) => {
+    const inv = inventoryItems.find(i => i.item_id === itemId);
+    return inv ? inv.quantity : 0;
+  };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -194,10 +201,10 @@ export default function ProduksiKandang() {
             <div className="grid grid-cols-3 gap-4">
               <div className="col-span-2">
                 <label className="block text-sm font-medium text-slate-700">Pilih Kandang Jadi</label>
-                <select required value={targetItemId} onChange={e => setTargetItemId(e.target.value)} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2">
+                <select required value={targetItemId} onChange={e => setTargetItemId(e.target.value)} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-sm">
                   <option value="">-- Pilih Barang Jadi --</option>
-                  {kandangJadi.map((i:any) => (
-                    <option key={i.item_id} value={i.item_id}>{i.item?.name}</option>
+                  {kandangJadi.map((i: any) => (
+                    <option key={i.id} value={i.id}>{i.name}</option>
                   ))}
                 </select>
               </div>
@@ -213,10 +220,10 @@ export default function ProduksiKandang() {
             {inputs.map((input, index) => (
               <div key={index} className="flex gap-2 items-start">
                 <div className="flex-1">
-                  <select required value={input.item_id} onChange={e => handleInputChange(index, 'item_id', e.target.value)} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
+                  <select required value={input.item_id} onChange={e => handleInputChange(index, 'item_id', e.target.value)} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-sm">
                     <option value="">-- Pilih Bahan --</option>
-                    {bahanKandang.map((i:any) => (
-                      <option key={i.item_id} value={i.item_id}>{i.item?.name} (Stok: {i.total_quantity})</option>
+                    {bahanKandang.map((i: any) => (
+                      <option key={i.id} value={i.id}>{i.name} (Stok: {getStock(i.id)})</option>
                     ))}
                   </select>
                 </div>

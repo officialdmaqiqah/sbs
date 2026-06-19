@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { arApService } from '../services/arApService';
 import Modal from '../components/Modal';
 import Badge from '../components/Badge';
-import { Plus, Edit, Search, PackagePlus, AlertCircle, Trash2, RotateCcw } from 'lucide-react';
+import { Plus, Edit, Search, PackagePlus, AlertCircle, Trash2, RotateCcw, FileText } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { confirmAlert } from '../components/ui/ConfirmAlert';
 
@@ -187,7 +187,7 @@ export default function Purchase() {
       qty_ordered: i.qty_ordered,
       unit_price: i.unit_price,
       discount: 0,
-      subtotal: i.total_price
+      subtotal: (i.qty_ordered * i.unit_price)
     })));
     setIsPOModalOpen(true);
   };
