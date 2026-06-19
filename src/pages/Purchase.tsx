@@ -28,6 +28,8 @@ export default function Purchase() {
   // Modal States
   const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
   const [isPOModalOpen, setIsPOModalOpen] = useState(false);
+  const [editingPOId, setEditingPOId] = useState<string | null>(null);
+  const [isPOViewOnly, setIsPOViewOnly] = useState(false);
   const [isReceiveModalOpen, setIsReceiveModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
@@ -161,9 +163,51 @@ export default function Purchase() {
 
   // ---- PO Methods ----
   const openAddPO = () => {
+    setEditingPOId(null);
+    setIsPOViewOnly(false);
     setPoForm({ supplier_id: '', project_id: '', date: new Date().toISOString().split('T')[0], shipping_cost: 0, notes: '' });
     setPoItems([]);
     setIsPOModalOpen(true);
+  };
+
+  const openEditPO = (po: PurchaseOrder, viewOnly = false) => {
+    setEditingPOId(po.id);
+    setIsPOViewOnly(viewOnly);
+    setPoForm({
+      supplier_id: po.supplier_id,
+      project_id: po.project_id,
+      date: po.date,
+      shipping_cost: po.shipping_cost,
+      notes: po.notes
+    });
+    
+    const itemsForPO = poItemsAll.filter(i => i.po_id === po.id);
+    setPoItems(itemsForPO.map(i => ({
+      item_id: i.item_id,
+      qty_ordered: i.qty_ordered,
+      unit_price: i.unit_price,
+      discount: 0,
+      subtotal: i.total_price
+    })));
+    setIsPOModalOpen(true);
+  };
+
+  const handleDeletePO = async (po: PurchaseOrder) => {
+    if (po.status !== 'Ordered' && po.status !== 'Draft') {
+      return toast.error('PO yang sudah diterima (sebagian/penuh) tidak dapat dihapus!');
+    }
+    
+    const confirm = await confirmAlert(`Apakah Anda yakin ingin menghapus PO ${po.po_number}?`);
+    if (!confirm) return;
+
+    try {
+      const provider = getDataProvider();
+      await provider.getRepository('purchase_orders').delete(po.id);
+      toast.success('PO berhasil dihapus');
+      loadData();
+    } catch (e: any) {
+      toast.error('Gagal menghapus PO: ' + e.message);
+    }
   };
 
   const addPOItemRow = () => {
@@ -216,22 +260,38 @@ export default function Purchase() {
     
     try {
       const provider = getDataProvider();
-      await provider.getPurchaseOrderRepository().createPurchaseOrder({
-        organization_id: '11111111-1111-1111-1111-111111111111',
-        po_number: poNumber,
-        project_id: poForm.project_id,
-        supplier_id: poForm.supplier_id,
-        date: poForm.date as string,
-        status: 'Ordered',
-        total_amount: getPOTotalAmount(),
-        shipping_cost: poForm.shipping_cost || 0,
-        notes: poForm.notes,
-        items: poItems as any
-      } as any);
+      if (editingPOId) {
+        // For simplicity, we delete existing items and recreate them via a custom call or just rely on the UI
+        // Since we don't have a full update RPC, we will update the PO header and warn the user about items.
+        // In a real app, we'd use an RPC to update PO + Items transactionally.
+        await provider.getPurchaseOrderRepository().updatePurchaseOrder(editingPOId, {
+          supplier_id: poForm.supplier_id,
+          project_id: poForm.project_id,
+          date: poForm.date as string,
+          total_amount: getPOTotalAmount(),
+          shipping_cost: poForm.shipping_cost || 0,
+          notes: poForm.notes,
+        });
+        toast.success('PO berhasil diupdate! (Catatan: Update item PO saat ini belum didukung penuh)');
+      } else {
+        await provider.getPurchaseOrderRepository().createPurchaseOrder({
+          organization_id: profile?.organization_id,
+          po_number: poNumber,
+          project_id: poForm.project_id,
+          supplier_id: poForm.supplier_id,
+          date: poForm.date as string,
+          status: 'Ordered',
+          total_amount: getPOTotalAmount(),
+          shipping_cost: poForm.shipping_cost || 0,
+          notes: poForm.notes,
+          items: poItems as any
+        } as any);
+        toast.success('PO berhasil dibuat!');
+      }
       setIsPOModalOpen(false);
       loadData();
     } catch (e: any) {
-      toast.error('Gagal membuat PO: ' + e.message);
+      toast.error('Gagal menyimpan PO: ' + e.message);
     }
   };
 
@@ -568,7 +628,7 @@ export default function Purchase() {
                         if (remaining_billable > 0) {
                           return (
                             <button onClick={() => handleCreateBill(po)} className="inline-flex items-center gap-1 text-brand-600 hover:text-brand-800 border border-brand-200 px-2 py-1 rounded-md text-xs">
-                              <div className="w-3 h-3" /> Create Bill
+                              <FileText className="w-3 h-3" /> Tagih
                             </button>
                           );
                         } else if (totalReceivedValue > 0) {
@@ -576,6 +636,22 @@ export default function Purchase() {
                         }
                         return null;
                       })()
+                    )}
+                    
+                    {/* View / Edit / Delete Actions */}
+                    {po.status === 'Ordered' || po.status === 'Draft' ? (
+                      <>
+                        <button onClick={() => openEditPO(po, false)} className="text-blue-600 hover:text-blue-800 bg-blue-50 p-1.5 rounded-md" title="Edit PO">
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => handleDeletePO(po)} className="text-red-600 hover:text-red-800 bg-red-50 p-1.5 rounded-md" title="Hapus PO">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </>
+                    ) : (
+                      <button onClick={() => openEditPO(po, true)} className="text-slate-600 hover:text-slate-800 bg-slate-50 p-1.5 rounded-md border border-slate-200" title="Lihat Detail PO">
+                        <Search className="w-4 h-4" />
+                      </button>
                     )}
                   </td>
                 </tr>
@@ -625,8 +701,9 @@ export default function Purchase() {
       </Modal>
 
       {/* PO Modal */}
-      <Modal isOpen={isPOModalOpen} onClose={() => setIsPOModalOpen(false)} title="Buat Purchase Order Baru" maxWidth="max-w-4xl">
+      <Modal isOpen={isPOModalOpen} onClose={() => setIsPOModalOpen(false)} title={isPOViewOnly ? "Detail Purchase Order" : (editingPOId ? "Edit Purchase Order" : "Buat Purchase Order Baru")} maxWidth="max-w-4xl">
         <form onSubmit={handleSavePO} className="space-y-4 max-h-[80vh] overflow-y-auto px-1 pb-4">
+          <fieldset disabled={isPOViewOnly} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium leading-6 text-slate-900">Tanggal Order</label>
@@ -651,9 +728,11 @@ export default function Purchase() {
           <div className="mt-6 border-t border-slate-200 pt-4">
             <div className="flex justify-between items-center mb-4">
               <h4 className="text-sm font-medium text-slate-900">Daftar Barang (Item)</h4>
-              <button type="button" data-testid="btn-add-po-item" onClick={addPOItemRow} className="inline-flex items-center gap-1 text-sm text-brand-600 hover:text-brand-800">
-                <Plus className="w-4 h-4" /> Tambah Baris
-              </button>
+              {!isPOViewOnly && (
+                <button type="button" data-testid="btn-add-po-item" onClick={addPOItemRow} className="inline-flex items-center gap-1 text-sm text-brand-600 hover:text-brand-800">
+                  <Plus className="w-4 h-4" /> Tambah Baris
+                </button>
+              )}
             </div>
             
             <div className="space-y-3">
@@ -684,9 +763,11 @@ export default function Purchase() {
                       {item.subtotal?.toLocaleString('id-ID')}
                     </div>
                   </div>
-                  <button type="button" onClick={() => removePOItemRow(index)} className="absolute -top-2 -right-2 bg-red-100 text-red-600 rounded-full p-1 hover:bg-red-200">
-                    <AlertCircle className="w-4 h-4" />
-                  </button>
+                  {!isPOViewOnly && (
+                    <button type="button" onClick={() => removePOItemRow(index)} className="absolute -top-2 -right-2 bg-red-100 text-red-600 rounded-full p-1 hover:bg-red-200">
+                      <AlertCircle className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               ))}
               {poItems.length === 0 && <p className="text-xs text-center text-slate-500 py-4">Belum ada barang ditambahkan.</p>}
@@ -709,9 +790,17 @@ export default function Purchase() {
             <textarea rows={2} value={poForm.notes} onChange={e => setPoForm({...poForm, notes: e.target.value})} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-sm" />
           </div>
 
+          </fieldset>
+
           <div className="mt-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-3">
-            <button type="submit" data-testid="btn-submit-po" className="inline-flex w-full justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-500 sm:col-start-2">Buat PO</button>
-            <button type="button" onClick={() => setIsPOModalOpen(false)} className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-slate-900 ring-1 ring-inset ring-slate-300 sm:col-start-1 sm:mt-0">Batal</button>
+            {!isPOViewOnly && (
+              <button type="submit" data-testid="btn-submit-po" className="inline-flex w-full justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-500 sm:col-start-2">
+                {editingPOId ? "Update PO" : "Buat PO"}
+              </button>
+            )}
+            <button type="button" onClick={() => setIsPOModalOpen(false)} className={`mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-slate-900 ring-1 ring-inset ring-slate-300 sm:mt-0 ${isPOViewOnly ? 'col-span-2' : 'sm:col-start-1'}`}>
+              {isPOViewOnly ? 'Tutup' : 'Batal'}
+            </button>
           </div>
         </form>
       </Modal>
