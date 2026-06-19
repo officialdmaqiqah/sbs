@@ -58,6 +58,16 @@ export default function Inventory() {
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [itemForm, setItemForm] = useState({ name: '', category: 'RAW_MATERIAL', unit: 'KG', price: 0 });
+
+  const categoryDisplayMap: Record<string, string> = {
+    'RAW_MATERIAL': 'Bahan Baku (Material)',
+    'EQUIPMENT': 'Peralatan / Aset Kerja',
+    'PACKAGING': 'Packaging / Kemasan',
+    'CONSUMABLE': 'Barang Habis Pakai',
+    'Ayam Petelur': 'Ayam Petelur (Ternak Hidup)',
+    'FINISHED_GOODS': 'Barang Jadi / Produk'
+  };
+  const getCategoryName = (cat: string) => categoryDisplayMap[cat] || cat;
   const [savingItem, setSavingItem] = useState(false);
 
   // Kartu Stok State
@@ -434,7 +444,7 @@ export default function Inventory() {
                 return (
                 <tr key={item.id}>
                   <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-slate-900">{item.name}</td>
-                  <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500"><Badge variant="default">{item.category}</Badge></td>
+                  <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500"><Badge variant="default">{getCategoryName(item.category)}</Badge></td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-900 font-bold text-center">{stock} <span className="font-normal text-slate-500">{item.unit}</span></td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500 text-right">Rp {avg.toLocaleString('id-ID')}</td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm font-medium text-slate-900 text-right">Rp {(stock * avg).toLocaleString('id-ID')}</td>
@@ -705,7 +715,7 @@ export default function Inventory() {
                   return (
                   <tr key={item.id}>
                     <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-slate-900">{item.name}</td>
-                    <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500"><Badge variant="default">{item.category}</Badge></td>
+                    <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500"><Badge variant="default">{getCategoryName(item.category)}</Badge></td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-900 font-bold text-center">{stock} <span className="font-normal text-slate-500">{item.unit}</span></td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm font-medium text-right space-x-2">
                       <button onClick={() => openMutasiFor(item.id, 'OUT', 'Dipakai Produksi Kandang', 'Bahan Dipakai Produksi Kandang')} className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded font-medium border border-slate-300">
