@@ -71,8 +71,7 @@ export default function CashBankList() {
           name: formData.account_name,
           code: formData.account_code,
           type: formData.account_type,
-          account_id: formData.gl_account_id,
-          notes: combinedNotes
+          account_id: formData.gl_account_id
         }).eq('id', selectedAccount.id);
         if (error) throw error;
       } else {
@@ -82,7 +81,6 @@ export default function CashBankList() {
           name: formData.account_name,
           code: formData.account_code,
           type: formData.account_type,
-          notes: combinedNotes,
           active: true
         });
         if (error) throw error;
