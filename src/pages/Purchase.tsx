@@ -78,19 +78,32 @@ export default function Purchase() {
   // ---- Supplier Methods ----
   const handleSaveSupplier = async (e: React.FormEvent) => {
     e.preventDefault();
-    const provider = getDataProvider();
-    if (editingId) {
-      await provider.getRepository<Supplier>('suppliers').update(editingId, supForm);
-    } else {
-      const count = suppliers.length + 1;
-      await provider.getRepository<Supplier>('suppliers').create({ 
-        ...supForm as any, 
-        code: `SUP-${String(count).padStart(3, '0')}` 
-      });
+    try {
+      const provider = getDataProvider();
+      const payload = {
+        name: supForm.name,
+        phone: supForm.phone,
+        address: supForm.address,
+        active: supForm.is_active,
+      };
+
+      if (editingId) {
+        await provider.getRepository<Supplier>('suppliers').update(editingId, payload);
+      } else {
+        const count = suppliers.length + 1;
+        await provider.getRepository<Supplier>('suppliers').create({ 
+          ...payload, 
+          organization_id: profile?.organization_id,
+          code: `SUP-${String(count).padStart(3, '0')}` 
+        } as any);
+      }
+      setIsSupplierModalOpen(false);
+      toast.success('Supplier berhasil disimpan');
+      loadData();
+    } catch (err: any) {
+      toast.error(err.message || 'Gagal menyimpan supplier');
+      console.error(err);
     }
-    setIsSupplierModalOpen(false);
-    toast.success('Supplier berhasil disimpan');
-    loadData();
   };
 
   const handleDeleteSupplier = async (id: string, name: string) => {
@@ -135,7 +148,7 @@ export default function Purchase() {
 
   const openEditSupplier = (s: Supplier) => {
     setEditingId(s.id);
-    setSupForm(s);
+    setSupForm({ ...s, is_active: (s as any).active ?? true });
     setIsSupplierModalOpen(true);
   };
 
