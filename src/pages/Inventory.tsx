@@ -9,8 +9,8 @@ import Modal from '../components/Modal';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useProject } from '../contexts/ProjectContext';
-
 import { useItems } from '../hooks/useItems';
+import { getDataProvider } from '../providers';
 import { useProjects } from '../hooks/useProjects';
 import { useInventoryLocations } from '../hooks/useInventoryLocations';
 import { useInventoryMovements } from '../hooks/useInventoryMovements';
@@ -49,6 +49,15 @@ export default function Inventory() {
   // Roles (Mock)
   const mockRole = ['CEO_ADMIN'].includes(profile?.role || '') ? 'Admin' : ['FINANCE'].includes(profile?.role || '') ? 'Reviewer' : 'Operator';
 
+  // Mutasi Manual State
+  const { postTransaction, loading: postingTransaction } = usePostInventoryTransaction();
+  const [isMutasiModalOpen, setIsMutasiModalOpen] = useState(false);
+
+  // Add Item State
+  const [isItemModalOpen, setIsItemModalOpen] = useState(false);
+  const [itemForm, setItemForm] = useState({ name: '', category: 'RAW_MATERIAL', unit: 'KG', price: 0 });
+  const [savingItem, setSavingItem] = useState(false);
+
   // Kartu Stok State
   const [selectedItemId, setSelectedItemId] = useState<string>('');
   const [startDate, setStartDate] = useState<string>('');
@@ -66,13 +75,36 @@ export default function Inventory() {
   const { data: cashAccounts } = useCashBankAccounts();
   const { createMutation: createCashMutation } = useCashBankMutations();
 
-  // Mutasi Manual State
-  const { postTransaction, loading: postingTransaction } = usePostInventoryTransaction();
-  const [isMutasiModalOpen, setIsMutasiModalOpen] = useState(false);
   const [mutasiError, setMutasiError] = useState('');
   const [mutasiForm, setMutasiForm] = useState({
     projectId: '', locationId: '', itemId: '', date: new Date().toISOString().split('T')[0], direction: 'IN', quantity: '', unitCost: '', referenceNumber: '', notes: '', transactionId: '', isPurchase: false, cashAccountId: ''
   });
+
+
+
+  const handleSaveItem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingItem(true);
+    try {
+      const repo = getDataProvider().getItemRepository();
+      const code = `ITM-${Date.now().toString().slice(-6)}`;
+      await repo.createItem({
+        name: itemForm.name,
+        code,
+        category: itemForm.category as any,
+        uom: itemForm.unit,
+        active: true,
+        selling_price: itemForm.price,
+        item_type: 'RAW_MATERIAL'
+      });
+      setIsItemModalOpen(false);
+      window.location.reload(); 
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setSavingItem(false);
+    }
+  };
 
   // Stock Opname State
   const [isOpnameModalOpen, setIsOpnameModalOpen] = useState(false);
@@ -336,9 +368,12 @@ export default function Inventory() {
       {/* MASTER INVENTORY TAB */}
       {activeTab === 'master' && (
         <div className="space-y-4">
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-2">
             <button onClick={() => refetchBalances()} className="inline-flex items-center justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50">
               <RotateCcw className="-ml-0.5 mr-2 h-4 w-4" /> Refresh Balance
+            </button>
+            <button onClick={() => setIsItemModalOpen(true)} className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500">
+              <Plus className="-ml-0.5 mr-2 h-4 w-4" /> Tambah Barang
             </button>
           </div>
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
@@ -762,6 +797,37 @@ export default function Inventory() {
               {postingTransaction ? 'Memproses...' : 'Simpan Mutasi'}
             </button>
             <button type="button" onClick={() => setIsMutasiModalOpen(false)} disabled={postingTransaction} className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-slate-900 ring-1 ring-inset ring-slate-300 sm:col-start-1 sm:mt-0 disabled:bg-slate-100 disabled:cursor-not-allowed">Batal</button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* ITEM MODAL */}
+      <Modal isOpen={isItemModalOpen} onClose={() => setIsItemModalOpen(false)} title="Tambah Barang Master">
+        <form onSubmit={handleSaveItem} className="space-y-4">
+          <div className="space-y-1.5">
+            <label className="block text-sm font-medium text-slate-700">Nama Barang</label>
+            <input required type="text" className="w-full border rounded-md px-3 py-2" value={itemForm.name} onChange={e => setItemForm({...itemForm, name: e.target.value})} placeholder="Misal: Kayu Balok, Paku 5cm" />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-slate-700">Kategori</label>
+              <select className="w-full border rounded-md px-3 py-2" value={itemForm.category} onChange={e => setItemForm({...itemForm, category: e.target.value})}>
+                <option value="RAW_MATERIAL">Bahan Baku (Material)</option>
+                <option value="PACKAGING">Packaging / Kemasan</option>
+                <option value="CONSUMABLE">Barang Habis Pakai</option>
+                <option value="FINISHED_GOODS">Barang Jadi / Produk</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-slate-700">Satuan (UOM)</label>
+              <input required type="text" className="w-full border rounded-md px-3 py-2" value={itemForm.unit} onChange={e => setItemForm({...itemForm, unit: e.target.value})} placeholder="Misal: Batang, Kg, Sak" />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 mt-6">
+            <button type="button" onClick={() => setIsItemModalOpen(false)} className="px-4 py-2 border rounded-md">Batal</button>
+            <button type="submit" disabled={savingItem} className="px-4 py-2 bg-brand-600 text-white rounded-md flex items-center">
+              {savingItem ? 'Menyimpan...' : 'Simpan Barang'}
+            </button>
           </div>
         </form>
       </Modal>
