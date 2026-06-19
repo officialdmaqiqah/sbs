@@ -56,6 +56,14 @@ export class SupabaseInventoryLocationRepository implements InventoryLocationRep
     return this.mapToFrontend(result);
   }
 
+  async deleteLocation(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('inventory_locations')
+      .delete()
+      .eq('id', id);
+    if (error) handleSupabaseError(error);
+  }
+
   // --- Mappers ---
   private mapToFrontend(dbRow: any): any {
     if (!dbRow) return dbRow;

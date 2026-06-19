@@ -29,7 +29,7 @@ export default function Inventory() {
   }
 
   const { activeProject } = useProject();
-  const [activeTab, setActiveTab] = useState<'master' | 'kartu' | 'opname' | 'ayam' | 'bahan'>('kartu');
+  const [activeTab, setActiveTab] = useState<'master' | 'kartu' | 'opname' | 'ayam' | 'bahan' | 'gudang'>('kartu');
   const [projectFilter, setProjectFilter] = useState<string>(activeProject?.id || 'ALL');
 
   useEffect(() => {
@@ -41,7 +41,7 @@ export default function Inventory() {
   // Master Data (Using Hooks)
   const { data: items, refetch: refetchItems } = useItems();
   const { data: projects } = useProjects();
-  const { data: locations } = useInventoryLocations();
+  const { data: locations, refetch: refetchLocations } = useInventoryLocations();
   
   // Legacy Data
   const [opnames, setOpnames] = useState<StockOpname[]>([]);
@@ -70,6 +70,11 @@ export default function Inventory() {
   };
   const getCategoryName = (cat: string) => categoryDisplayMap[cat] || cat;
   const [savingItem, setSavingItem] = useState(false);
+
+  // Gudang State
+  const [isGudangModalOpen, setIsGudangModalOpen] = useState(false);
+  const [gudangForm, setGudangForm] = useState({ name: '', code: '' });
+  const [savingGudang, setSavingGudang] = useState(false);
 
   // Kartu Stok State
   const [selectedItemId, setSelectedItemId] = useState<string>('');
@@ -136,6 +141,41 @@ export default function Inventory() {
       refetchItems();
     } catch (err: any) {
       alert(err.message || 'Gagal menghapus barang. Barang mungkin sudah digunakan dalam transaksi.');
+    }
+  };
+
+  const handleSaveGudang = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeProject?.organization_id) return alert('Organization ID not found');
+    setSavingGudang(true);
+    try {
+      const repo = getDataProvider().getInventoryLocationRepository();
+      await repo.createLocation({
+        organizationId: activeProject.organization_id,
+        name: gudangForm.name,
+        code: gudangForm.code || `WH-${Date.now()}`,
+        locationType: 'WAREHOUSE',
+        active: true
+      });
+      setIsGudangModalOpen(false);
+      setGudangForm({ name: '', code: '' });
+      refetchLocations();
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setSavingGudang(false);
+    }
+  };
+
+  const handleDeleteGudang = async (id: string, name: string) => {
+    if (!window.confirm(`Hapus gudang ${name}?`)) return;
+    try {
+      const repo = getDataProvider().getInventoryLocationRepository();
+      if (!repo.deleteLocation) throw new Error('Delete location not implemented');
+      await repo.deleteLocation(id);
+      refetchLocations();
+    } catch (err: any) {
+      alert(err.message || 'Gagal menghapus gudang.');
     }
   };
 
@@ -412,6 +452,7 @@ export default function Inventory() {
           <button onClick={() => setActiveTab('opname')} className={`whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium ${activeTab === 'opname' ? 'border-brand-500 text-brand-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'}`}>Stock Opname</button>
           <button onClick={() => setActiveTab('ayam')} className={`whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium ${activeTab === 'ayam' ? 'border-brand-500 text-brand-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'}`}>Tracking Ayam Petelur</button>
           <button onClick={() => setActiveTab('bahan')} className={`whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium ${activeTab === 'bahan' ? 'border-brand-500 text-brand-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'}`}>Material Usage</button>
+          <button onClick={() => setActiveTab('gudang')} className={`whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium ${activeTab === 'gudang' ? 'border-brand-500 text-brand-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'}`}>Lokasi Gudang</button>
         </nav>
       </div>
 
@@ -777,7 +818,7 @@ export default function Inventory() {
               <label className="block text-sm font-medium leading-6 text-slate-900">Lokasi Gudang</label>
               <select data-testid="mutasi-location" required value={mutasiForm.locationId} onChange={e => setMutasiForm({...mutasiForm, locationId: e.target.value})} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-sm">
                 <option value="">- Pilih Lokasi -</option>
-                {locations?.map((l: any) => <option key={l.id} value={l.id}>{l.name}</option>)}
+                {Array.from(new Map(locations?.map((l: any) => [l.name, l])).values()).map((l: any) => <option key={l.id} value={l.id}>{l.name}</option>)}
               </select>
             </div>
           </div>
@@ -889,6 +930,64 @@ export default function Inventory() {
             <button type="button" onClick={() => setIsItemModalOpen(false)} className="px-4 py-2 border rounded-md">Batal</button>
             <button type="submit" disabled={savingItem} className="px-4 py-2 bg-brand-600 text-white rounded-md flex items-center">
               {savingItem ? 'Menyimpan...' : 'Simpan Barang'}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* LOKASI GUDANG TAB */}
+      {activeTab === 'gudang' && (
+        <div className="space-y-4">
+          <div className="flex justify-end gap-2">
+            <button onClick={() => refetchLocations()} className="inline-flex items-center justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50">
+              <RotateCcw className="-ml-0.5 mr-2 h-4 w-4" /> Refresh
+            </button>
+            <button onClick={() => setIsGudangModalOpen(true)} className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500">
+              <Plus className="-ml-0.5 mr-2 h-4 w-4" /> Tambah Gudang
+            </button>
+          </div>
+          <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+            <table className="min-w-full divide-y divide-slate-200">
+              <thead className="bg-slate-50">
+                <tr>
+                  <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-slate-900">Nama Gudang</th>
+                  <th className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">Kode</th>
+                  <th className="px-3 py-3.5 text-center text-sm font-semibold text-slate-900">Aksi</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200 bg-white">
+                {locations?.map((loc: any) => (
+                  <tr key={loc.id}>
+                    <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-slate-900">{loc.name}</td>
+                    <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500">{loc.code}</td>
+                    <td className="whitespace-nowrap px-3 py-4 text-sm text-center">
+                      <button onClick={() => handleDeleteGudang(loc.id, loc.name)} className="text-red-500 hover:text-red-700" title="Hapus Gudang">
+                        <Trash2 className="h-4 w-4 mx-auto" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ADD GUDANG MODAL */}
+      <Modal isOpen={isGudangModalOpen} onClose={() => setIsGudangModalOpen(false)} title="Tambah Lokasi Gudang">
+        <form onSubmit={handleSaveGudang} className="space-y-4">
+          <div className="space-y-1.5">
+            <label className="block text-sm font-medium text-slate-700">Nama Gudang</label>
+            <input required type="text" className="w-full border rounded-md px-3 py-2" value={gudangForm.name} onChange={e => setGudangForm({...gudangForm, name: e.target.value})} placeholder="Misal: Gudang Utama, Gudang Pakan" />
+          </div>
+          <div className="space-y-1.5">
+            <label className="block text-sm font-medium text-slate-700">Kode Gudang (Opsional)</label>
+            <input type="text" className="w-full border rounded-md px-3 py-2" value={gudangForm.code} onChange={e => setGudangForm({...gudangForm, code: e.target.value})} placeholder="Misal: WH-01" />
+          </div>
+          <div className="flex justify-end gap-2 mt-6">
+            <button type="button" onClick={() => setIsGudangModalOpen(false)} className="px-4 py-2 border rounded-md">Batal</button>
+            <button type="submit" disabled={savingGudang} className="px-4 py-2 bg-brand-600 text-white rounded-md flex items-center">
+              {savingGudang ? 'Menyimpan...' : 'Simpan Gudang'}
             </button>
           </div>
         </form>

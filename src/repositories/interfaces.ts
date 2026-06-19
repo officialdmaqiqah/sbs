@@ -45,6 +45,7 @@ export interface InventoryLocationRepository {
   getLocationById(id: string): Promise<any | null>;
   createLocation(data: any): Promise<any>;
   updateLocation(id: string, data: any): Promise<any>;
+  deleteLocation(id: string): Promise<void>;
 }
 
 export interface InventoryMovementRepository {
