@@ -185,20 +185,33 @@ export function useAccounts() {
         if (user) {
           const { data: profile } = await supabase.from('profiles').select('organization_id').eq('id', user.id).single();
           if (profile?.organization_id) {
-            const { data: newAcc } = await supabase.from('chart_of_accounts').insert({
+            const { error: insErr } = await supabase.from('chart_of_accounts').insert({
               organization_id: profile.organization_id,
-              account_code: '1-1000',
-              account_name: 'Kas & Bank (Default)',
-              account_type: 'Asset',
-              normal_balance: 'Debit',
-              allow_posting: true,
-              is_active: true
-            }).select('*');
-            if (newAcc) return newAcc;
+              code: '1-1000',
+              name: 'Kas & Bank (Default)',
+              type: 'Asset',
+              active: true
+            });
+            if (!insErr) {
+               const { data: retryData } = await supabase.from('chart_of_accounts').select('*');
+               if (retryData) {
+                 return retryData.map((acc: any) => ({
+                   ...acc,
+                   account_name: acc.name,
+                   account_code: acc.code,
+                   account_type: acc.type
+                 }));
+               }
+            }
           }
         }
       }
-      return data;
+      return data.map((acc: any) => ({
+        ...acc,
+        account_name: acc.name || acc.account_name,
+        account_code: acc.code || acc.account_code,
+        account_type: acc.type || acc.account_type
+      }));
     }
     return db.query('accounts', () => true);
   }, []);
