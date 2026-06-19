@@ -1,10 +1,11 @@
 import toast from 'react-hot-toast';
 // @ts-nocheck
-import React, { useState, useMemo, useEffect } from 'react';
-import type { CustomerPayment } from '../types';
+import { useState, useMemo, useEffect } from 'react';
+import { arApService } from '../services/arApService';
+import type { CustomerPayment, CustomerInvoice, Customer } from '../types';
+import { useAuth } from '../contexts/AuthContext';
 import { useCustomerPayments, useCashBankAccounts, useCustomerInvoices } from '../hooks/useFinance';
 import { getDataProvider } from '../providers';
-import { supabase } from '../lib/supabase';
 
 export default function CustomerPayments() {
   const { data: payments, refetch: refetchPayments } = useCustomerPayments();
@@ -137,7 +138,7 @@ export default function CustomerPayments() {
                 <tr key={pay.id} className="hover:bg-slate-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 font-medium">{pay.payment_number}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{pay.payment_date}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">{pay.customer_name || customers.find(c => c.id === pay.customer_id)?.name || customers.find(c => c.id === pay.customer_id)?.customer_name || pay.customer_id}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">{pay.customer_name || customers.find(c => c.id === (pay as any).customer_id)?.name || customers.find(c => c.id === (pay as any).customer_id)?.customer_name || (pay as any).customer_id}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{cb || pay.cash_bank_account_id}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-slate-900">{formatter.format(pay.amount)}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-yellow-600 font-bold">{formatter.format(pay.unapplied_amount)}</td>

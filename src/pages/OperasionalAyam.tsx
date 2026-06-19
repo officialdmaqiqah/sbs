@@ -80,7 +80,7 @@ export default function OperasionalAyam() {
                           dailyRecordService.updateRecordStatus(rec.id, 'Submitted', 'Admin');
                           dailyRecordService.updateRecordStatus(rec.id, 'Approved', 'Admin');
                           const res = dailyRecordService.postDailyRecord(rec.id, 'Admin');
-                          if(res.success) loadData(); else toast.error(res.message);
+                          if(res.success) loadData(); else toast.error(res.message || 'Gagal');
                         }
                       }}>Post</button>
                     </div>
