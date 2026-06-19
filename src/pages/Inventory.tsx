@@ -864,6 +864,7 @@ export default function Inventory() {
                 <option value="EQUIPMENT">Peralatan / Aset Kerja</option>
                 <option value="PACKAGING">Packaging / Kemasan</option>
                 <option value="CONSUMABLE">Barang Habis Pakai</option>
+                <option value="Ayam Petelur">Ayam Petelur (Ternak Hidup)</option>
                 <option value="FINISHED_GOODS">Barang Jadi / Produk</option>
               </select>
             </div>
