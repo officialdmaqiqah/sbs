@@ -146,12 +146,12 @@ export default function Inventory() {
 
   const handleSaveGudang = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!activeProject?.organizationId) return alert('Organization ID not found');
+    if (!profile?.organization_id) return alert('Organization ID not found');
     setSavingGudang(true);
     try {
       const repo = getDataProvider().getInventoryLocationRepository();
       await repo.createLocation({
-        organizationId: activeProject.organizationId,
+        organizationId: profile.organization_id,
         name: gudangForm.name,
         code: gudangForm.code || `WH-${Date.now()}`,
         locationType: 'WAREHOUSE',
