@@ -225,9 +225,12 @@ function ProjectTeam({ projectId, teamMembers, reload }: { projectId: string, te
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState('');
   const [role, setRole] = useState('CEO');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleAdd = async (e: any) => {
     e.preventDefault();
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     try {
       await supabase.from('project_members').insert({
         project_id: projectId,
@@ -241,6 +244,8 @@ function ProjectTeam({ projectId, teamMembers, reload }: { projectId: string, te
     } catch (err) {
       console.error(err);
       alert('Gagal menambah tim');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -303,7 +308,7 @@ function ProjectTeam({ projectId, teamMembers, reload }: { projectId: string, te
           </div>
           <div className="pt-4 flex justify-end gap-2">
             <button type="button" onClick={() => setIsOpen(false)} className="px-4 py-2 border rounded-md text-sm text-slate-700 hover:bg-slate-50">Batal</button>
-            <button type="submit" className="px-4 py-2 bg-brand-600 text-white rounded-md text-sm hover:bg-brand-500">Simpan</button>
+            <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-brand-600 text-white rounded-md text-sm hover:bg-brand-500 disabled:opacity-50">{isSubmitting ? 'Menyimpan...' : 'Simpan'}</button>
           </div>
         </form>
       </Modal>
@@ -318,9 +323,12 @@ function ProjectCapital({ projectId, investments, reload, accounts, teamMembers 
   const [paymentMethod, setPaymentMethod] = useState('Kas Tunai');
   const [cashBankId, setCashBankId] = useState('');
   const [notes, setNotes] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleAdd = async (e: any) => {
     e.preventDefault();
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     try {
       const { data: orgData } = await supabase.from('projects').select('organization_id').eq('id', projectId).single();
       
@@ -358,6 +366,8 @@ function ProjectCapital({ projectId, investments, reload, accounts, teamMembers 
     } catch (err) {
       console.error(err);
       alert('Gagal menambah modal');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -383,6 +393,18 @@ function ProjectCapital({ projectId, investments, reload, accounts, teamMembers 
       } catch (e: any) {
         console.error(e);
         alert('Gagal menyinkronkan: ' + e.message);
+      }
+    }
+  };
+
+  const handleDelete = async (inv: any) => {
+    if(confirm('Hapus pencatatan modal ini?')) {
+      try {
+        await supabase.from('project_investments').delete().eq('id', inv.id);
+        reload();
+      } catch (e: any) {
+        console.error(e);
+        alert('Gagal menghapus modal');
       }
     }
   };
@@ -417,9 +439,14 @@ function ProjectCapital({ projectId, investments, reload, accounts, teamMembers 
                 {inv.is_synced_to_cash ? (
                   <Badge variant="success">Tercatat di Kas</Badge>
                 ) : (
-                  <button onClick={() => syncToCash(inv)} className="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded border border-indigo-200 hover:bg-indigo-100">
-                    Catat ke Kas
-                  </button>
+                  <div className="flex justify-end gap-2">
+                    <button onClick={() => syncToCash(inv)} className="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded border border-indigo-200 hover:bg-indigo-100">
+                      Catat ke Kas
+                    </button>
+                    <button onClick={() => handleDelete(inv)} className="text-xs bg-red-50 text-red-600 px-2 py-1 rounded border border-red-200 hover:bg-red-100">
+                      Hapus
+                    </button>
+                  </div>
                 )}
               </td>
             </tr>
@@ -474,7 +501,7 @@ function ProjectCapital({ projectId, investments, reload, accounts, teamMembers 
           </div>
           <div className="pt-4 flex justify-end gap-2">
             <button type="button" onClick={() => setIsOpen(false)} className="px-4 py-2 border rounded-md text-sm text-slate-700 hover:bg-slate-50">Batal</button>
-            <button type="submit" className="px-4 py-2 bg-brand-600 text-white rounded-md text-sm hover:bg-brand-500">Simpan</button>
+            <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-brand-600 text-white rounded-md text-sm hover:bg-brand-500 disabled:opacity-50">{isSubmitting ? 'Menyimpan...' : 'Simpan'}</button>
           </div>
         </form>
       </Modal>
