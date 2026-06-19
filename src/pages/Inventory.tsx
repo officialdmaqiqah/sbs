@@ -3,10 +3,11 @@ import { db } from '../services/db';
 import { stockOpnameService } from '../services/stockOpname';
 import { costingService } from '../services/costing';
 import type { StockOpname, StockOpnameItem } from '../types';
-import { ListFilter, ArrowDownLeft, ArrowUpRight, Plus, AlertTriangle, FileText, PackageCheck, RotateCcw, Box } from 'lucide-react';
+import { ListFilter, ArrowDownLeft, ArrowUpRight, Plus, AlertTriangle, FileText, PackageCheck, RotateCcw, Box, Trash2 } from 'lucide-react';
 import Badge from '../components/Badge';
 import Modal from '../components/Modal';
 import { Navigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useProject } from '../contexts/ProjectContext';
 import { useItems } from '../hooks/useItems';
@@ -102,6 +103,17 @@ export default function Inventory() {
       alert(err.message);
     } finally {
       setSavingItem(false);
+    }
+  };
+
+  const handleDeleteItem = async (id: string, name: string) => {
+    if (!window.confirm(`Hapus barang ${name}?`)) return;
+    try {
+      const { error } = await supabase.from('items').delete().eq('id', id);
+      if (error) throw error;
+      window.location.reload();
+    } catch (err: any) {
+      alert(err.message || 'Gagal menghapus barang. Barang mungkin sudah digunakan dalam transaksi.');
     }
   };
 
@@ -384,6 +396,7 @@ export default function Inventory() {
                 <th className="px-3 py-3.5 text-center text-sm font-semibold text-slate-900">Stok Aktual</th>
                 <th className="px-3 py-3.5 text-right text-sm font-semibold text-slate-900">Avg Cost</th>
                 <th className="px-3 py-3.5 text-right text-sm font-semibold text-slate-900">Total Value</th>
+                <th className="px-3 py-3.5 text-center text-sm font-semibold text-slate-900">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 bg-white">
@@ -397,6 +410,11 @@ export default function Inventory() {
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-900 font-bold text-center">{stock} <span className="font-normal text-slate-500">{item.unit}</span></td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500 text-right">Rp {avg.toLocaleString('id-ID')}</td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm font-medium text-slate-900 text-right">Rp {(stock * avg).toLocaleString('id-ID')}</td>
+                  <td className="whitespace-nowrap px-3 py-4 text-sm text-center">
+                    <button onClick={() => handleDeleteItem(item.id, item.name)} className="text-red-500 hover:text-red-700" title="Hapus Barang">
+                      <Trash2 className="h-4 w-4 mx-auto" />
+                    </button>
+                  </td>
                 </tr>
               )})}
             </tbody>
