@@ -1,9 +1,7 @@
 import toast from 'react-hot-toast';
 // @ts-nocheck
 import { useState, useMemo, useEffect } from 'react';
-import { arApService } from '../services/arApService';
-import type { CustomerPayment, CustomerInvoice, Customer } from '../types';
-import { useAuth } from '../contexts/AuthContext';
+import type { CustomerPayment } from '../types';
 import { useCustomerPayments, useCashBankAccounts, useCustomerInvoices } from '../hooks/useFinance';
 import { getDataProvider } from '../providers';
 
