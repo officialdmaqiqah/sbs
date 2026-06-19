@@ -39,7 +39,7 @@ export default function Inventory() {
   }, [activeProject]);
 
   // Master Data (Using Hooks)
-  const { data: items } = useItems();
+  const { data: items, refetch: refetchItems } = useItems();
   const { data: projects } = useProjects();
   const { data: locations } = useInventoryLocations();
   
@@ -109,7 +109,7 @@ export default function Inventory() {
         });
       }
       setIsItemModalOpen(false);
-      window.location.reload(); 
+      refetchItems();
     } catch (err: any) {
       alert(err.message);
     } finally {
@@ -122,7 +122,7 @@ export default function Inventory() {
     try {
       const { error } = await supabase.from('items').delete().eq('id', id);
       if (error) throw error;
-      window.location.reload();
+      refetchItems();
     } catch (err: any) {
       alert(err.message || 'Gagal menghapus barang. Barang mungkin sudah digunakan dalam transaksi.');
     }
