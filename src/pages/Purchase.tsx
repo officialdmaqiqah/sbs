@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 // import { db } from '../services/db';
 import type { Supplier, SupplierCategory, PurchaseOrder, PurchaseOrderItem, Project, Item } from '../types';
 import { getDataProvider } from '../providers';
+import { useAuth } from '../contexts/AuthContext';
 import { arApService } from '../services/arApService';
 import Modal from '../components/Modal';
 import Badge from '../components/Badge';
@@ -12,6 +13,7 @@ import { confirmAlert } from '../components/ui/ConfirmAlert';
 const SUPPLIER_CATEGORIES: SupplierCategory[] = ['Ayam', 'Bahan Kandang', 'Bahan Pakan', 'Vitamin / Obat', 'Peralatan', 'Umum'];
 
 export default function Purchase() {
+  const { profile } = useAuth();
   const [activeTab, setActiveTab] = useState<'supplier' | 'po'>('supplier');
   
   // Data State
