@@ -2,8 +2,10 @@ import { useState, useMemo } from 'react';
 import { cashBankService } from '../services/cashBankService';
 import type { CashBankAccount } from '../types';
 import { 
-  useCashBankAccounts
+  useCashBankAccounts,
+  useAccounts
 } from '../hooks/useFinance';
+import { useAuth } from '../contexts/AuthContext';
 import { useCashBankMutations } from '../hooks/useCashBankMutations';
 import CashBankLedger from '../components/finance/CashBankLedger';
 import { useProject } from '../contexts/ProjectContext';
@@ -11,6 +13,8 @@ import { useProject } from '../contexts/ProjectContext';
 export default function CashBankList() {
   const { activeProject, availableProjects } = useProject();
   const [projectFilter, setProjectFilter] = useState<string>(activeProject?.id || 'All');
+  const { profile } = useAuth();
+  const { data: glAccounts } = useAccounts();
 
   const { data: accounts, refetch: refetchAccounts } = useCashBankAccounts();
   const { accountBalances } = useCashBankMutations(projectFilter);
@@ -49,19 +53,39 @@ export default function CashBankList() {
     });
   }, [accounts, search, filterType]);
 
-  const handleSubmit = (e: any) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
+    if (!profile?.organization_id) return alert('No organization found');
+    if (!formData.gl_account_id) return alert('Silakan pilih Akun GL terlebih dahulu');
+
     try {
+      const { supabase } = await import('../lib/supabase');
+      let combinedNotes = formData.notes || '';
+      if (formData.account_type === 'Bank') {
+        const bankInfo = `Bank: ${formData.bank_name || '-'} | No. Rek: ${formData.bank_account_number || '-'} | A.n: ${formData.account_holder || '-'}`;
+        combinedNotes = combinedNotes ? `${bankInfo}\n${combinedNotes}` : bankInfo;
+      }
+
       if (selectedAccount) {
-        cashBankService.updateCashBankAccount(selectedAccount.id, formData);
+        const { error } = await supabase.from('cash_bank_accounts').update({
+          name: formData.account_name,
+          code: formData.account_code,
+          type: formData.account_type,
+          account_id: formData.gl_account_id,
+          notes: combinedNotes
+        }).eq('id', selectedAccount.id);
+        if (error) throw error;
       } else {
-        cashBankService.createCashBankAccount({
-          ...formData,
-          currency: 'IDR',
-          opening_balance: 0,
-          opening_balance_date: new Date().toISOString().split('T')[0],
+        const { error } = await supabase.from('cash_bank_accounts').insert({
+          organization_id: profile.organization_id,
+          account_id: formData.gl_account_id,
+          name: formData.account_name,
+          code: formData.account_code,
+          type: formData.account_type,
+          notes: combinedNotes,
           active: true
-        }, 'Admin');
+        });
+        if (error) throw error;
       }
       setIsModalOpen(false);
       refetchAccounts();
@@ -237,6 +261,16 @@ export default function CashBankList() {
                     <option value="Bank">Rekening Bank</option>
                   </select>
                 </div>
+              </div>
+              
+              <div className="space-y-1.5">
+                <label>Akun GL (Buku Besar)</label>
+                <select className="w-full rounded border px-3 py-2" value={formData.gl_account_id} onChange={e => setFormData({...formData, gl_account_id: e.target.value})} required>
+                  <option value="">-- Pilih Akun GL --</option>
+                  {(glAccounts as any[])?.filter((acc: any) => acc.account_type === 'Asset').map((acc: any) => (
+                    <option key={acc.id} value={acc.id}>{acc.account_code} - {acc.account_name}</option>
+                  ))}
+                </select>
               </div>
               
               <div className="space-y-1.5">
