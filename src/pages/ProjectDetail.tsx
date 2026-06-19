@@ -293,9 +293,11 @@ function ProjectTeam({ projectId, teamMembers, reload }: { projectId: string, te
           <div>
             <label className="block text-sm font-medium text-slate-700">Jabatan Project</label>
             <select className="mt-1 block w-full rounded-md border-slate-300 py-2 px-3 text-sm border focus:ring-brand-500 focus:border-brand-500" value={role} onChange={e => setRole(e.target.value)}>
-              <option value="CEO">CEO / Penanggung Jawab</option>
-              <option value="Finance & Marketing">Finance & Marketing</option>
-              <option value="Produksi">Produksi</option>
+              <option value="CEO">CEO</option>
+              <option value="Finance & Admin">Finance & Admin</option>
+              <option value="Produksi Pakan">Produksi Pakan</option>
+              <option value="Produksi Kandang">Produksi Kandang</option>
+              <option value="Digital Marketing">Digital Marketing</option>
               <option value="Distribusi">Distribusi</option>
             </select>
           </div>
