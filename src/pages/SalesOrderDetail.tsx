@@ -7,7 +7,9 @@ import { usePackageComponents } from '../hooks/usePackageComponents';
 import { supabase } from '../lib/supabase';
 import Badge from '../components/Badge';
 import Modal from '../components/Modal';
+import { confirmAlert } from '../components/ui/ConfirmAlert';
 import { useCashBankAccounts } from '../hooks/useFinance';
+import toast from 'react-hot-toast';
 
 export default function SalesOrderDetail() {
   const { id } = useParams();
@@ -55,7 +57,7 @@ export default function SalesOrderDetail() {
   const handleConfirm = async () => {
     const { isReady, missing } = checkAvailability();
     if (!isReady) {
-      if (!window.confirm(`STOK KURANG:\n${missing.join('\n')}\n\nTetap konfirmasi order (Override Admin)?`)) {
+      if (!(await confirmAlert(`STOK KURANG:\n${missing.join('\n')}\n\nTetap konfirmasi order (Override Admin)?`))) {
         return;
       }
     }
@@ -63,14 +65,14 @@ export default function SalesOrderDetail() {
     try {
       await updateOrderStatus(order.id, 'Dikonfirmasi');
     } catch(e:any) {
-      alert(e.message);
+      toast.error(e.message);
     }
     setIsProcessing(false);
   };
 
   const handleProsesBarangKeluar = async () => {
     if (order.stock_processed_at) {
-      alert('Barang sudah diproses keluar!');
+      toast.error('Barang sudah diproses keluar!');
       return;
     }
     setIsProcessing(true);
@@ -114,9 +116,9 @@ export default function SalesOrderDetail() {
 
       await markStockProcessed(order.id);
       await updateOrderStatus(order.id, 'Siap Dikirim');
-      alert('Stok berhasil dipotong!');
+      toast.success('Stok berhasil dipotong!');
     } catch(e:any) {
-      alert(e.message);
+      toast.error(e.message);
     }
     setIsProcessing(false);
   };
@@ -156,7 +158,7 @@ export default function SalesOrderDetail() {
         };
         const { error } = await supabase.from('customer_invoices').insert([invPayload]);
         if (error) throw error;
-        alert('Piutang berhasil dicatat di Customer Invoices!');
+        toast.success('Piutang berhasil dicatat di Customer Invoices!');
       }
 
       await markPaid(order.id);
@@ -165,7 +167,7 @@ export default function SalesOrderDetail() {
       }
       setIsPaymentModalOpen(false);
     } catch(e:any) {
-      alert(e.message);
+      toast.error(e.message);
     }
     setIsProcessing(false);
   };

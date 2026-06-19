@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast';
  import { useState, useEffect } from 'react'; 
 import { db } from '../services/db';
 import { dailyRecordService } from '../services/dailyRecordService';
@@ -33,7 +34,7 @@ export default function OperasionalAyam() {
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-medium text-slate-900">Catatan Harian Ayam</h3>
         <button 
-          onClick={() => alert('Fitur ini belum aktif di Internal Beta.')}
+          onClick={() => toast.error('Fitur ini belum aktif di Internal Beta.')}
           className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2 rounded-md hover:bg-brand-700"
         >
           <Plus className="w-4 h-4" /> Entry Harian Baru
@@ -79,7 +80,7 @@ export default function OperasionalAyam() {
                           dailyRecordService.updateRecordStatus(rec.id, 'Submitted', 'Admin');
                           dailyRecordService.updateRecordStatus(rec.id, 'Approved', 'Admin');
                           const res = dailyRecordService.postDailyRecord(rec.id, 'Admin');
-                          if(res.success) loadData(); else alert(res.message);
+                          if(res.success) loadData(); else toast.error(res.message);
                         }
                       }}>Post</button>
                     </div>
@@ -98,7 +99,7 @@ export default function OperasionalAyam() {
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-medium text-slate-900">Unit Pemeliharaan Ayam (Flocks)</h3>
         <button 
-          onClick={() => alert('Fitur ini belum aktif di Internal Beta.')}
+          onClick={() => toast.error('Fitur ini belum aktif di Internal Beta.')}
           className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2 rounded-md hover:bg-brand-700"
         >
           <Plus className="w-4 h-4" /> Tambah Flock

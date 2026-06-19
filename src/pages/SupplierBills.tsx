@@ -4,6 +4,7 @@ import type { SupplierBill } from '../types';
 import type { BillEligibleReceipt } from '../providers/interfaces/SupplierBillReadService';
 import { useAuth } from '../contexts/AuthContext';
 import { FileText, Plus, AlertCircle, CheckCircle } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const formatter = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' });
 
@@ -82,7 +83,7 @@ export default function SupplierBills() {
       // Switch tab to see the new bill
       setActiveTab('bills');
     } catch (err: any) {
-      alert(err.message || 'Gagal membuat tagihan');
+      toast.error(err.message || 'Gagal membuat tagihan');
     }
   };
 
@@ -94,7 +95,7 @@ export default function SupplierBills() {
       setIsDetailModalOpen(true);
     } catch (err) {
       console.error(err);
-      alert('Gagal mengambil detail baris tagihan');
+      toast.error('Gagal mengambil detail baris tagihan');
     }
   };
 

@@ -1,4 +1,5 @@
  import {  useState, useEffect  } from 'react';
+import toast from 'react-hot-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { accountingService } from '../services/accountingService';
 import { accountingMappingService } from '../services/accountingMappingService';
@@ -42,9 +43,9 @@ export default function AccountingMappingUI() {
         accountingMappingService.setMapping({ mapping_type: mappingType as any, source_id: sourceId, account_id: accId });
       });
       setUnsavedChanges(false);
-      alert('All mappings saved successfully!');
+      toast.success('All mappings saved successfully!');
     } catch (e: any) {
-      alert(e.message);
+      toast.error(e.message);
     }
   };
 

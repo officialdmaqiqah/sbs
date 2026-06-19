@@ -8,6 +8,7 @@ import ConfirmDialog from '../components/ui/ConfirmDialog';
 import { useProject, type Project } from '../contexts/ProjectContext';
 import { useCashBankMutations } from '../hooks/useCashBankMutations';
 import { useCashBankAccounts } from '../hooks/useFinance';
+import toast from 'react-hot-toast';
 
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
@@ -244,7 +245,7 @@ function ProjectTeam({ projectId, teamMembers, reload }: { projectId: string, te
       reload();
     } catch (err) {
       console.error(err);
-      alert('Gagal menambah tim');
+      toast.error('Gagal menambah tim');
     } finally {
       setIsSubmitting(false);
     }
@@ -374,14 +375,14 @@ function ProjectCapital({ projectId, investments, reload, accounts, teamMembers 
       reload();
     } catch (err) {
       console.error(err);
-      alert('Gagal menambah modal');
+      toast.error('Gagal menambah modal');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const syncToCash = async (inv: any) => {
-    if(!inv.cash_bank_id) return alert('Pilih akun Kas/Bank terlebih dahulu sebelum sinkronasi.');
+    if(!inv.cash_bank_id) return toast.error('Pilih akun Kas/Bank terlebih dahulu sebelum sinkronasi.');
     
     setConfirmDialog({
       isOpen: true,
@@ -409,7 +410,7 @@ function ProjectCapital({ projectId, investments, reload, accounts, teamMembers 
           setConfirmDialog(prev => ({ ...prev, isOpen: false }));
         } catch (e: any) {
           console.error(e);
-          alert('Gagal menyinkronkan: ' + e.message);
+          toast.error('Gagal menyinkronkan: ' + e.message);
         } finally {
           setIsSubmitting(false);
         }
@@ -432,7 +433,7 @@ function ProjectCapital({ projectId, investments, reload, accounts, teamMembers 
           setConfirmDialog(prev => ({ ...prev, isOpen: false }));
         } catch (e: any) {
           console.error(e);
-          alert('Gagal menghapus modal');
+          toast.error('Gagal menghapus modal');
         } finally {
           setIsSubmitting(false);
         }

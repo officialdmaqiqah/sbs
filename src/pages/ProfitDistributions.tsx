@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import type { ProfitDistribution, ProfitDistributionPayout } from '../types';
 import { profitDistributionService } from '../services/profitDistributionService';
 import { Building, Users, Coins, HeartHandshake } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function ProfitDistributions() {
   const [distributions, setDistributions] = useState<ProfitDistribution[]>([]);
@@ -28,7 +29,7 @@ export default function ProfitDistributions() {
       profitDistributionService.generateDraftDistribution(projectId, 'finance_user');
       loadData();
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
     }
   };
 
@@ -39,7 +40,7 @@ export default function ProfitDistributions() {
       loadData();
       selectDist(profitDistributionService.getDistributions().find(d => d.id === selectedDist.id)!);
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
     }
   };
 
@@ -50,7 +51,7 @@ export default function ProfitDistributions() {
       loadData();
       selectDist(profitDistributionService.getDistributions().find(d => d.id === selectedDist.id)!);
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
     }
   };
 
@@ -78,7 +79,7 @@ export default function ProfitDistributions() {
       loadData();
       selectDist(profitDistributionService.getDistributions().find(d => d.id === selectedDist.id)!);
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
     }
   };
 

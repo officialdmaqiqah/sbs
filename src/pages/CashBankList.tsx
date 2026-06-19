@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast';
 import { useState, useMemo } from 'react';
 import { cashBankService } from '../services/cashBankService';
 import type { CashBankAccount } from '../types';
@@ -55,8 +56,8 @@ export default function CashBankList() {
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
-    if (!profile?.organization_id) return alert('No organization found');
-    if (!formData.gl_account_id) return alert('Silakan pilih Akun GL terlebih dahulu');
+    if (!profile?.organization_id) return toast.error('No organization found');
+    if (!formData.gl_account_id) return toast.error('Silakan pilih Akun GL terlebih dahulu');
 
     try {
       const { supabase } = await import('../lib/supabase');
@@ -88,7 +89,7 @@ export default function CashBankList() {
       setIsModalOpen(false);
       refetchAccounts();
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
     }
   };
 
@@ -99,9 +100,9 @@ export default function CashBankList() {
       cashBankService.postOpeningBalance(selectedAccount.id, obFormData.amount, obFormData.date, 'Admin');
       setIsOpeningBalanceModalOpen(false);
       refetchAccounts();
-      alert('Opening balance posted successfully!');
+      toast.success('Opening balance posted successfully!');
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
     }
   };
 

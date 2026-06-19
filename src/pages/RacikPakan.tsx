@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast';
  import { useState, useEffect } from 'react'; 
 import { db } from '../services/db';
 import { feedProductionService } from '../services/feedProduction';
@@ -84,7 +85,7 @@ export default function RacikPakan() {
     e.preventDefault();
     if (editingMasterId) {
       if (isRecipeUsed(editingMasterId)) {
-        return alert('Resep ini sudah pernah dipakai di produksi selesai. Anda tidak bisa mengedit versi ini. Buatlah resep/versi baru.');
+        return toast.error('Resep ini sudah pernah dipakai di produksi selesai. Anda tidak bisa mengedit versi ini. Buatlah resep/versi baru.');
       }
       (db as any).update('feed_recipes', editingMasterId, masterForm);
     } else {
@@ -180,15 +181,15 @@ export default function RacikPakan() {
   };
 
   const handleSaveFormula = () => {
-    if (!selectedRecipeId) return alert('Pilih resep dulu!');
-    if (isRecipeUsed(selectedRecipeId)) return alert('Resep ini sudah pernah dipakai di produksi selesai. Anda tidak bisa mengedit versi ini. Buatlah resep/versi baru dari Master Resep.');
-    if (formulaItemsEditor.length === 0) return alert('Minimal 1 item bahan harus ada!');
+    if (!selectedRecipeId) return toast.error('Pilih resep dulu!');
+    if (isRecipeUsed(selectedRecipeId)) return toast.error('Resep ini sudah pernah dipakai di produksi selesai. Anda tidak bisa mengedit versi ini. Buatlah resep/versi baru dari Master Resep.');
+    if (formulaItemsEditor.length === 0) return toast.error('Minimal 1 item bahan harus ada!');
     
     const seen = new Set();
     for (const item of formulaItemsEditor) {
-      if (!item.item_id) return alert('Semua baris bahan harus dipilih barangnya!');
-      if ((item.qty_per_batch || 0) <= 0) return alert('Qty bahan harus lebih dari 0!');
-      if (seen.has(item.item_id)) return alert('Tidak boleh ada duplikasi bahan dalam 1 resep!');
+      if (!item.item_id) return toast.error('Semua baris bahan harus dipilih barangnya!');
+      if ((item.qty_per_batch || 0) <= 0) return toast.error('Qty bahan harus lebih dari 0!');
+      if (seen.has(item.item_id)) return toast.error('Tidak boleh ada duplikasi bahan dalam 1 resep!');
       seen.add(item.item_id);
     }
 
@@ -212,7 +213,7 @@ export default function RacikPakan() {
       });
     });
 
-    alert('Formula berhasil disimpan!');
+    toast.success('Formula berhasil disimpan!');
     loadData();
   };
 
@@ -235,11 +236,11 @@ export default function RacikPakan() {
 
   const handleCreateWo = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!woForm.project_id || !woForm.recipe_id) return alert('Pilih Project dan Resep!');
-    if ((woForm.batch_count || 0) <= 0) return alert('Jumlah batch harus > 0!');
+    if (!woForm.project_id || !woForm.recipe_id) return toast.error('Pilih Project dan Resep!');
+    if ((woForm.batch_count || 0) <= 0) return toast.error('Jumlah batch harus > 0!');
     
     const estimates = getFormulaEstimate();
-    if (estimates.length === 0) return alert('Resep ini belum memiliki formula! Buat formula terlebih dahulu.');
+    if (estimates.length === 0) return toast.error('Resep ini belum memiliki formula! Buat formula terlebih dahulu.');
 
     const estYield = getEstimatedYield();
 
@@ -317,12 +318,12 @@ export default function RacikPakan() {
     e.preventDefault();
     if (!processWo) return;
     
-    if (processForm.actual_yield <= 0) return alert('Qty hasil aktual pakan (Kg) harus > 0!');
+    if (processForm.actual_yield <= 0) return toast.error('Qty hasil aktual pakan (Kg) harus > 0!');
 
     let hasZeroCost = false;
     for (const item of processItems) {
-      if (item.actual_qty < 0) return alert('Qty aktual bahan tidak boleh negatif!');
-      if (item.actual_qty > item.stock) return alert(`Stok tidak cukup untuk bahan ${getItemName(item.item_id)}!`);
+      if (item.actual_qty < 0) return toast.error('Qty aktual bahan tidak boleh negatif!');
+      if (item.actual_qty > item.stock) return toast.error(`Stok tidak cukup untuk bahan ${getItemName(item.item_id)}!`);
       if (item.avg_cost === 0) hasZeroCost = true;
     }
 
@@ -347,7 +348,7 @@ export default function RacikPakan() {
     );
 
     if (!success) {
-      alert(`Gagal menyelesaikan produksi: ${message}`);
+      toast.error(`Gagal menyelesaikan produksi: ${message}`);
       return;
     }
 
@@ -362,12 +363,12 @@ export default function RacikPakan() {
     try {
       const { success, message } = feedProductionService.reverseFeedProductionOrder(wo.id, reason, 'system');
       if (!success) {
-        alert(`Gagal: ${message}`);
+        toast.error(`Gagal: ${message}`);
         return;
       }
       loadData();
     } catch(err: any) {
-      alert(`Gagal reverse: ${err.message}`);
+      toast.error(`Gagal reverse: ${err.message}`);
     }
   };
 

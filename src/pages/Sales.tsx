@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast';
  import { useState, useEffect } from 'react'; 
 import { getDataProvider } from '../providers';
 import { salesFulfillmentService } from '../services/salesFulfillment';
@@ -71,7 +72,7 @@ export default function Sales() {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     if (!form.project_id || !form.customer_name || !form.item_id) {
-      alert('Mohon lengkapi data order.');
+      toast.error('Mohon lengkapi data order.');
       return;
     }
     
@@ -145,7 +146,7 @@ export default function Sales() {
     const provider = getDataProvider();
     await provider.getRepository('sales_orders').update(id, { status: 'Confirmed' });
     await provider.getRepository('audit_logs').create({ reference_id: id, type: 'SalesOrder', action: 'Confirmed', user: 'Admin', created_at: new Date().toISOString() });
-    alert('Order Confirmed'); loadData();
+    toast.error('Order Confirmed'); loadData();
     if(selectedOrder && selectedOrder.id === id) setSelectedOrder({...selectedOrder, status: 'Confirmed'});
   };
 
@@ -162,38 +163,38 @@ export default function Sales() {
   const handleReserve = async (id: string) => {
     const res = salesFulfillmentService.reserveSalesOrderStock(id, 'Admin');
     if(res.success) {
-      alert('Reservasi stok diproses.'); 
+      toast.error('Reservasi stok diproses.'); 
       await loadData();
       if(selectedOrder && selectedOrder.id === id) {
         const updated = await getDataProvider().getSalesOrderRepository().getSalesOrderById(id);
         if (updated) setSelectedOrder(updated);
       }
-    } else alert('Gagal: ' + res.message);
+    } else toast.error('Gagal: ' + res.message);
   };
 
   const handleRelease = async (id: string) => {
     const res = salesFulfillmentService.releaseSalesOrderReservation(id, 'Admin');
     if(res.success) {
-      alert('Reservasi stok dilepas.');
+      toast.error('Reservasi stok dilepas.');
       await loadData();
       if(selectedOrder && selectedOrder.id === id) {
         const updated = await getDataProvider().getSalesOrderRepository().getSalesOrderById(id);
         if (updated) setSelectedOrder(updated);
       }
-    } else alert('Gagal: ' + res.message);
+    } else toast.error('Gagal: ' + res.message);
   };
 
   const handleCompleteOrder = async (id: string) => {
     const provider = getDataProvider();
     await provider.getRepository('sales_orders').update(id, { status: 'Completed' });
     await provider.getRepository('audit_logs').create({ reference_id: id, type: 'SalesOrder', action: 'Completed', user: 'Admin', created_at: new Date().toISOString() });
-    alert('Order Completed'); loadData();
+    toast.error('Order Completed'); loadData();
     if(selectedOrder && selectedOrder.id === id) setSelectedOrder({...selectedOrder, status: 'Completed'});
   };
 
   const openCreateDelivery = (o: SalesOrder) => {
     const activeRes = reservations.filter(r => r.sales_order_id === o.id && r.status === 'Active' && r.quantity > 0);
-    if(activeRes.length === 0) return alert('Tidak ada item yang dapat dikirim (belum direservasi atau sudah terkirim semua).');
+    if(activeRes.length === 0) return toast.error('Tidak ada item yang dapat dikirim (belum direservasi atau sudah terkirim semua).');
 
     setDeliveryForm({
       sales_order_id: o.id,
@@ -213,7 +214,7 @@ export default function Sales() {
   const handleSaveDelivery = (e: any) => {
     e.preventDefault();
     if(deliveryForm.items.some((i:any) => i.qty_to_deliver <= 0 || i.qty_to_deliver > i.quantity)) {
-      return alert('Pastikan Qty Kirim valid (lebih dari 0 dan tidak melebihi Qty Reserved).');
+      return toast.error('Pastikan Qty Kirim valid (lebih dari 0 dan tidak melebihi Qty Reserved).');
     }
     const req = {
       sales_order_id: deliveryForm.sales_order_id,
@@ -230,10 +231,10 @@ export default function Sales() {
     };
     const res = salesFulfillmentService.createSalesDelivery(req.sales_order_id, req.scheduled_date, req.driver, 'Admin');
     if(res.success) {
-      alert('Delivery Order berhasil dibuat.');
+      toast.success('Delivery Order berhasil dibuat.');
       setIsDeliveryModalOpen(false);
       loadData();
-    } else alert('Gagal: ' + res.message);
+    } else toast.error('Gagal: ' + res.message);
   };
 
   const handleCreateInvoice = (d: SalesDelivery, so: SalesOrder) => {
@@ -248,7 +249,7 @@ export default function Sales() {
     const remaining_billable = totalOrderAmount - invoicedAmt;
     
     if (remaining_billable <= 0) {
-      alert("Sudah tidak ada tagihan tersisa untuk delivery ini.");
+      toast.error("Sudah tidak ada tagihan tersisa untuk delivery ini.");
       return;
     }
     
@@ -265,10 +266,10 @@ export default function Sales() {
         sales_order_id: d.sales_order_id,
         sales_delivery_id: d.id
       }, 'Admin');
-      alert("Invoice berhasil dibuat.");
+      toast.success("Invoice berhasil dibuat.");
       loadData();
     } catch (e: any) {
-      alert("Gagal membuat invoice: " + e.message);
+      toast.error("Gagal membuat invoice: " + e.message);
     }
   };
 

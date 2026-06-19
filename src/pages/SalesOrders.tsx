@@ -7,6 +7,7 @@ import { useProject } from '../contexts/ProjectContext';
 import { useItems } from '../hooks/useItems';
 import Modal from '../components/Modal';
 import Badge from '../components/Badge';
+import toast from 'react-hot-toast';
 
 export default function SalesOrders() {
   const navigate = useNavigate();
@@ -46,7 +47,7 @@ export default function SalesOrders() {
   const handleCreate = async (e: any) => {
     e.preventDefault();
     if (!activeProject) {
-      alert('Project aktif harus dipilih sebelum membuat Order!');
+      toast.error('Project aktif harus dipilih sebelum membuat Order!');
       return;
     }
     
@@ -86,7 +87,7 @@ export default function SalesOrders() {
       setIsModalOpen(false);
       navigate(`/sales/orders/${newOrder.id}`);
     } catch (err: any) {
-      alert(err.message || 'Gagal membuat order');
+      toast.error(err.message || 'Gagal membuat order');
     } finally {
       setIsSaving(false);
     }

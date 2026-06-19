@@ -8,6 +8,7 @@ import { AlertCircle, CheckCircle, Printer, ArrowLeft } from 'lucide-react';
 import Badge from '../components/Badge';
 import Modal from '../components/Modal';
 import { useProject } from '../contexts/ProjectContext';
+import toast from 'react-hot-toast';
 
 export default function ProjectClosing() {
   const { id: urlId } = useParams();
@@ -68,11 +69,11 @@ export default function ProjectClosing() {
     setIsSaving(true);
     const success = await saveClosing(calculation);
     if (success) {
-      alert('Tutup Buku berhasil disimpan!');
+      toast.success('Tutup Buku berhasil disimpan!');
       const existing = await getExistingClosing();
       setExistingClosing(existing);
     } else {
-      alert('Gagal menyimpan tutup buku: ' + error);
+      toast.error('Gagal menyimpan tutup buku: ' + error);
     }
     setIsSaving(false);
   };

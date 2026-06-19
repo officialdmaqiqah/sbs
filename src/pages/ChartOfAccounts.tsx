@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast';
 import { useState, useEffect } from 'react';
 
 import { accountingService } from '../services/accountingService';
@@ -39,7 +40,7 @@ export default function ChartOfAccounts() {
       setShowModal(false);
       loadAccounts();
     } catch (e: any) {
-      alert(e.message);
+      toast.error(e.message);
     }
   };
 
@@ -49,7 +50,7 @@ export default function ChartOfAccounts() {
         accountingService.updateAccount(id, { is_active: false });
         loadAccounts();
       } catch (e: any) {
-        alert(e.message);
+        toast.error(e.message);
       }
     }
   };

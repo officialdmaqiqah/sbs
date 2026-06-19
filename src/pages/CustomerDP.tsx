@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { arApService } from '../services/arApService';
 import type { CustomerDP } from '../types';
 import { useCustomerDP, useCashBankAccounts } from '../hooks/useFinance';
+import toast from 'react-hot-toast';
 
 export default function CustomerDPList() {
   const { data: dps, refetch: refetchDps } = useCustomerDP();
@@ -40,9 +41,9 @@ export default function CustomerDPList() {
       } as any, 'Admin');
       setIsModalOpen(false);
       refetchDps();
-      alert('DP received successfully!');
+      toast.success('DP received successfully!');
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
     }
   };
 
@@ -53,9 +54,9 @@ export default function CustomerDPList() {
       // arApService.refundCustomerDP(selectedDp.id, refundData.cash_bank_account_id, refundData.refund_date, 'Admin');
       setIsRefundModalOpen(false);
       refetchDps();
-      alert('DP refunded successfully!');
+      toast.success('DP refunded successfully!');
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
     }
   };
 

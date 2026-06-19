@@ -3,6 +3,7 @@ import { useSalesDeliveries, useDeliverableSalesOrders, useCreateSalesDelivery }
 import Modal from '../components/Modal';
 import Badge from '../components/Badge';
 import { Truck } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function Distribusi() {
   const [activeTab, setActiveTab] = useState<'Deliveries' | 'Pending Sales Orders'>('Deliveries');
@@ -48,7 +49,7 @@ export default function Distribusi() {
     
     // Validate
     if (form.items.some((i: any) => i.quantity_delivered <= 0 || i.quantity_delivered > (i.ordered - i.delivered_so_far))) {
-      alert("Kuantitas pengiriman tidak valid.");
+      toast.error("Kuantitas pengiriman tidak valid.");
       return;
     }
 
@@ -63,12 +64,12 @@ export default function Distribusi() {
         notes: form.notes,
         items: form.items
       });
-      alert('Delivery berhasil dibuat dan stok gudang telah terpotong.');
+      toast.success('Delivery berhasil dibuat dan stok gudang telah terpotong.');
       setIsDeliveryModalOpen(false);
       refetchDeliveries();
       refetchSOs();
     } catch (err: any) {
-      alert("Gagal memproses pengiriman: " + err.message);
+      toast.error("Gagal memproses pengiriman: " + err.message);
     }
   };
 

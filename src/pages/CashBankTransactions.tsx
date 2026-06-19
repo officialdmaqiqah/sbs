@@ -4,6 +4,7 @@ import type { CashBankMutation } from '../hooks/useCashBankMutations';
 import { useCashBankAccounts } from '../hooks/useFinance';
 import { useProjects } from '../hooks/useProjects';
 import { useProject } from '../contexts/ProjectContext';
+import toast from 'react-hot-toast';
 
 export default function CashBankTransactions() {
   const { data: mutations, createMutation } = useCashBankMutations();
@@ -36,7 +37,7 @@ export default function CashBankTransactions() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.amount <= 0) {
-      alert('Jumlah uang harus lebih dari 0');
+      toast.error('Jumlah uang harus lebih dari 0');
       return;
     }
 
@@ -54,9 +55,9 @@ export default function CashBankTransactions() {
     const res = await createMutation(payload);
     if (res.success) {
       setIsModalOpen(false);
-      alert('Mutasi berhasil dicatat!');
+      toast.success('Mutasi berhasil dicatat!');
     } else {
-      alert('Error: ' + res.message);
+      toast.error('Error: ' + res.message);
     }
   };
 

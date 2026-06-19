@@ -6,6 +6,7 @@ import { useSalesOrders } from '../hooks/useSalesOrders';
 import { useProject } from '../contexts/ProjectContext';
 import Modal from '../components/Modal';
 import Badge from '../components/Badge';
+import toast from 'react-hot-toast';
 
 export default function Distribution() {
   const navigate = useNavigate();
@@ -50,7 +51,7 @@ export default function Distribution() {
   const handleCreate = async (e: any) => {
     e.preventDefault();
     if (!activeProject) {
-      alert('Project aktif harus dipilih sebelum membuat Pengiriman!');
+      toast.error('Project aktif harus dipilih sebelum membuat Pengiriman!');
       return;
     }
     
@@ -70,7 +71,7 @@ export default function Distribution() {
       setIsModalOpen(false);
       navigate(`/distribution/shipments/${newShipment.id}`);
     } catch (err: any) {
-      alert(err.message || 'Gagal membuat jadwal pengiriman');
+      toast.error(err.message || 'Gagal membuat jadwal pengiriman');
     } finally {
       setIsSaving(false);
     }

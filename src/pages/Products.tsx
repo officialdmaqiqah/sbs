@@ -8,6 +8,7 @@ import { getDataProvider } from '../providers';
 import { useProject } from '../contexts/ProjectContext';
 import { useInventoryBalances } from '../hooks/useInventoryBalances';
 import { usePackageComponents } from '../hooks/usePackageComponents';
+import toast from 'react-hot-toast';
 
 const CATEGORIES: ProductCategory[] = ['Paket Usaha', 'Ayam Petelur', 'Kandang', 'Telur', 'Lainnya'];
 const SUB_CATEGORIES_TELUR = ['Telur Biasa', 'Telur Omega', 'Telur Ayam Kampung', 'Telur Asin Ayam'];
@@ -197,10 +198,10 @@ export default function Products() {
     }
 
     if (newComps.length === pkgCompsForm.length) {
-      alert('Tidak dapat menemukan mapping baru otomatis. Pastikan master item (Ayam Petelur, Pakan, Kandang) tersedia.');
+      toast.error('Tidak dapat menemukan mapping baru otomatis. Pastikan master item (Ayam Petelur, Pakan, Kandang) tersedia.');
     } else {
       setPkgCompsForm(newComps);
-      alert('Mapping berhasil digenerate, silakan periksa dan sesuaikan quantity.');
+      toast.success('Mapping berhasil digenerate, silakan periksa dan sesuaikan quantity.');
     }
   };
 
@@ -240,10 +241,10 @@ export default function Products() {
           await saveComponents(created.id, comps);
         }
       }
-      alert('Seed sukses!');
+      toast.error('Seed sukses!');
       loadData();
     } catch(e: any) {
-      alert('Error: ' + e.message);
+      toast.error('Error: ' + e.message);
     } finally {
       setIsSaving(false);
     }

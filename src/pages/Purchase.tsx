@@ -7,6 +7,7 @@ import Modal from '../components/Modal';
 import Badge from '../components/Badge';
 import { Plus, Edit, Search, PackagePlus, AlertCircle, Trash2, RotateCcw } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { confirmAlert } from '../components/ui/ConfirmAlert';
 
 const SUPPLIER_CATEGORIES: SupplierCategory[] = ['Ayam', 'Bahan Kandang', 'Bahan Pakan', 'Vitamin / Obat', 'Peralatan', 'Umum'];
 
@@ -93,7 +94,7 @@ export default function Purchase() {
   };
 
   const handleDeleteSupplier = async (id: string, name: string) => {
-    if (!window.confirm(`Hapus supplier ${name}?`)) return;
+    if (!(await confirmAlert(`Hapus supplier ${name}?`))) return;
     try {
       const provider = getDataProvider();
       await provider.getRepository<Supplier>('suppliers').delete(id);
@@ -114,7 +115,7 @@ export default function Purchase() {
   };
 
   const handleMassDeleteSupplier = async () => {
-    if (!window.confirm(`Hapus ${selectedSupplierIds.length} supplier terpilih?`)) return;
+    if (!(await confirmAlert(`Hapus ${selectedSupplierIds.length} supplier terpilih?`))) return;
     try {
       const provider = getDataProvider();
       await Promise.all(selectedSupplierIds.map(id => provider.getRepository<Supplier>('suppliers').delete(id)));
@@ -177,17 +178,17 @@ export default function Purchase() {
   const handleSavePO = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!poForm.supplier_id || !poForm.project_id) {
-      alert('Supplier dan Project wajib dipilih!');
+      toast.error('Supplier dan Project wajib dipilih!');
       return;
     }
     if (poItems.length === 0) {
-      alert('Minimal 1 item barang harus ditambahkan!');
+      toast.error('Minimal 1 item barang harus ditambahkan!');
       return;
     }
     for (const item of poItems) {
-      if (!item.item_id) return alert('Pilih barang untuk semua baris item!');
-      if ((item.qty_ordered || 0) <= 0) return alert('Qty order harus lebih dari 0!');
-      if ((item.unit_price || 0) < 0) return alert('Harga satuan tidak boleh negatif!');
+      if (!item.item_id) return toast.error('Pilih barang untuk semua baris item!');
+      if ((item.qty_ordered || 0) <= 0) return toast.error('Qty order harus lebih dari 0!');
+      if ((item.unit_price || 0) < 0) return toast.error('Harga satuan tidak boleh negatif!');
     }
 
     const count = purchaseOrders.length + 1;
@@ -210,7 +211,7 @@ export default function Purchase() {
       setIsPOModalOpen(false);
       loadData();
     } catch (e: any) {
-      alert('Gagal membuat PO: ' + e.message);
+      toast.error('Gagal membuat PO: ' + e.message);
     }
   };
 
@@ -236,19 +237,19 @@ export default function Purchase() {
     if (isSubmitting) return;
     setIsSubmitting(true);
     if (!receivePO) return;
-    if (!receiveLocationId) return alert('Pilih lokasi / gudang penyimpanan barang!');
+    if (!receiveLocationId) return toast.error('Pilih lokasi / gudang penyimpanan barang!');
 
     let anyReceivedNow = false;
 
     // Validate first
     for (const item of receiveItems) {
       const remaining = item.qty_ordered - item.qty_received;
-      if (item.qty_to_receive < 0) return alert('Qty terima tidak boleh negatif!');
-      if (item.qty_to_receive > remaining) return alert(`Qty terima melebihi sisa untuk barang tertentu! (Max: ${remaining})`);
+      if (item.qty_to_receive < 0) return toast.error('Qty terima tidak boleh negatif!');
+      if (item.qty_to_receive > remaining) return toast.error(`Qty terima melebihi sisa untuk barang tertentu! (Max: ${remaining})`);
       if (item.qty_to_receive > 0) anyReceivedNow = true;
     }
 
-    if (!anyReceivedNow) return alert('Minimal 1 barang harus diterima.');
+    if (!anyReceivedNow) return toast.error('Minimal 1 barang harus diterima.');
 
     try {
       const provider = getDataProvider();
@@ -287,11 +288,11 @@ export default function Purchase() {
         }))
       });
 
-      alert('Penerimaan barang berhasil diproses!');
+      toast.success('Penerimaan barang berhasil diproses!');
       setIsReceiveModalOpen(false);
       loadData();
     } catch (err: any) {
-      alert('Gagal memproses penerimaan barang: ' + err.message);
+      toast.error('Gagal memproses penerimaan barang: ' + err.message);
       return;
     } finally {
       setIsSubmitting(false);
@@ -310,7 +311,7 @@ export default function Purchase() {
     const remaining_billable = totalReceivedValue - billedAmt;
     
     if (remaining_billable <= 0) {
-      alert("Sudah tidak ada tagihan tersisa untuk PO ini (berdasarkan qty received).");
+      toast.error("Sudah tidak ada tagihan tersisa untuk PO ini (berdasarkan qty received).");
       return;
     }
     
@@ -324,10 +325,10 @@ export default function Purchase() {
         total_amount: remaining_billable,
         purchase_order_id: po.id
       }, 'Admin');
-      alert("Supplier Bill berhasil dibuat.");
+      toast.success("Supplier Bill berhasil dibuat.");
       loadData();
     } catch (e: any) {
-      alert("Gagal membuat Supplier Bill: " + e.message);
+      toast.error("Gagal membuat Supplier Bill: " + e.message);
     }
   };
 

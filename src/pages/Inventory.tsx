@@ -20,6 +20,7 @@ import { usePostInventoryTransaction } from '../hooks/usePostInventoryTransactio
 import { useCashBankMutations } from '../hooks/useCashBankMutations';
 import { useCashBankAccounts } from '../hooks/useFinance';
 import toast from 'react-hot-toast';
+import { confirmAlert } from '../components/ui/ConfirmAlert';
 
 export default function Inventory() {
   const { profile } = useAuth();
@@ -138,7 +139,7 @@ export default function Inventory() {
   };
 
   const handleDeleteItem = async (id: string, name: string) => {
-    if (!window.confirm(`Hapus barang ${name}?`)) return;
+    if (!(await confirmAlert(`Hapus barang ${name}?`))) return;
     try {
       const { error } = await supabase.from('items').delete().eq('id', id);
       if (error) throw error;
@@ -185,7 +186,7 @@ export default function Inventory() {
   };
 
   const handleDeleteGudang = async (id: string, name: string) => {
-    if (!window.confirm(`Hapus gudang ${name}?`)) return;
+    if (!(await confirmAlert(`Hapus gudang ${name}?`))) return;
     try {
       const repo = getDataProvider().getInventoryLocationRepository();
       if (!repo.deleteLocation) throw new Error('Delete location not implemented');
@@ -213,7 +214,7 @@ export default function Inventory() {
   };
 
   const handleMassDeleteGudang = async () => {
-    if (!window.confirm(`Hapus ${selectedGudangIds.length} gudang terpilih?`)) return;
+    if (!(await confirmAlert(`Hapus ${selectedGudangIds.length} gudang terpilih?`))) return;
     try {
       const repo = getDataProvider().getInventoryLocationRepository();
       if (!repo.deleteLocation) throw new Error('Delete location not implemented');

@@ -8,6 +8,7 @@ import { useCashBankAccounts } from '../hooks/useFinance';
 import { useAuth } from '../contexts/AuthContext';
 import Badge from '../components/Badge';
 import Modal from '../components/Modal';
+import toast from 'react-hot-toast';
 
 export default function ProductionDetail() {
   const { id } = useParams();
@@ -63,7 +64,7 @@ export default function ProductionDetail() {
       if (isAdmin) {
         if (!confirm(`${warningMsg}\n\nAnda adalah Admin. Lanjutkan potong stok sampai minus?`)) return;
       } else {
-        alert(`${warningMsg}\n\nHanya CEO/Admin yang bisa melanjutkan dengan stok kurang.`);
+        toast.error(`${warningMsg}\n\nHanya CEO/Admin yang bisa melanjutkan dengan stok kurang.`);
         return;
       }
     } else {
@@ -73,9 +74,9 @@ export default function ProductionDetail() {
     setIsProcessing(true);
     try {
       await processProduction(id!, production.project_id, production.items);
-      alert('Produksi berhasil diproses!');
+      toast.success('Produksi berhasil diproses!');
     } catch(e:any) {
-      alert(e.message);
+      toast.error(e.message);
     }
     setIsProcessing(false);
   };
@@ -99,7 +100,7 @@ export default function ProductionDetail() {
       setAmount('');
       setCostNotes('');
     } catch(e:any) {
-      alert(e.message);
+      toast.error(e.message);
     }
     setIsProcessing(false);
   };

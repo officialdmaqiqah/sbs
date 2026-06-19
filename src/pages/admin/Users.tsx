@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Users as UsersIcon, UserPlus, CheckCircle, XCircle } from 'lucide-react';
 import { useUsers, useUpdateUserRole, useUpdateUserStatus } from '../../hooks/useUsers';
 import { useAuth } from '../../contexts/AuthContext';
+import toast from 'react-hot-toast';
+import { confirmAlert } from '../../components/ui/ConfirmAlert';
 
 const ROLE_LABELS: Record<string, string> = {
   'CEO_ADMIN': 'Owner/Admin',
@@ -22,16 +24,16 @@ export default function Users() {
 
 
 
-  const handleRoleChange = (userId: string, newRole: string) => {
+  const handleRoleChange = async (userId: string, newRole: string) => {
     if (userId === profile?.id && newRole !== 'CEO_ADMIN') {
-      if (!window.confirm("Anda akan mengubah role Anda sendiri menjadi lebih rendah. Anda akan kehilangan akses Pengaturan. Lanjutkan?")) return;
+      if (!(await confirmAlert("Anda akan mengubah role Anda sendiri menjadi lebih rendah. Anda akan kehilangan akses Pengaturan. Lanjutkan?"))) return;
     }
     updateRoleMutation.mutate({ userId, roleCode: newRole });
   };
 
-  const handleToggleStatus = (userId: string, currentStatus: boolean) => {
+  const handleToggleStatus = async (userId: string, currentStatus: boolean) => {
     if (userId === profile?.id) {
-      alert("Anda tidak dapat menonaktifkan akun Anda sendiri.");
+      toast.error("Anda tidak dapat menonaktifkan akun Anda sendiri.");
       return;
     }
     updateStatusMutation.mutate({ userId, isActive: !currentStatus });

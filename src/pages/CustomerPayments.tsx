@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast';
 // @ts-nocheck
 import React, { useState, useMemo, useEffect } from 'react';
 import type { CustomerPayment } from '../types';
@@ -60,13 +61,13 @@ export default function CustomerPayments() {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     if (totalAllocated > formData.amount) {
-      alert('Total allocated amount cannot exceed total payment amount.');
+      toast.error('Total allocated amount cannot exceed total payment amount.');
       return;
     }
     
     const allocations = allocationInputs.filter(a => a.amount > 0);
     if (allocations.length === 0) {
-      alert('Tolong alokasikan pembayaran ke setidaknya satu faktur.');
+      toast.error('Tolong alokasikan pembayaran ke setidaknya satu faktur.');
       return;
     }
 
@@ -91,9 +92,9 @@ export default function CustomerPayments() {
       setIsModalOpen(false);
       refetchPayments();
       refetchInvoices();
-      alert('Payment received and posted successfully!');
+      toast.success('Payment received and posted successfully!');
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
     }
   };
 

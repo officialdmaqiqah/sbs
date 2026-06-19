@@ -5,6 +5,7 @@ import type { CustomerInvoice, Project } from '../types';
 import { useCustomerInvoices, useCustomerDP } from '../hooks/useFinance';
 import { db } from '../services/db';
 import { getDataProvider } from '../providers';
+import toast from 'react-hot-toast';
 
 export default function CustomerInvoices() {
   const { data: invoices, refetch: refetchInvoices } = useCustomerInvoices();
@@ -58,9 +59,9 @@ export default function CustomerInvoices() {
       setIsDetailModalOpen(false);
       refetchInvoices();
       refetchDps();
-      alert('DP applied successfully!');
+      toast.success('DP applied successfully!');
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
     }
   };
 
@@ -85,9 +86,9 @@ export default function CustomerInvoices() {
 
       setIsNewModalOpen(false);
       refetchInvoices();
-      alert('Invoice created successfully! Note: Penambahan line item secara manual belum tersedia di Internal Beta.');
+      toast.success('Invoice created successfully! Note: Penambahan line item secara manual belum tersedia di Internal Beta.');
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
     }
   };
 

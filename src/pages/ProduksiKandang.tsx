@@ -6,6 +6,7 @@ import { useProject } from '../contexts/ProjectContext';
 import { useInventoryBalances } from '../hooks/useInventoryBalances';
 import Modal from '../components/Modal';
 import Badge from '../components/Badge';
+import toast from 'react-hot-toast';
 
 export default function ProduksiKandang() {
   const navigate = useNavigate();
@@ -54,18 +55,18 @@ export default function ProduksiKandang() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeProject) {
-      alert('Project aktif harus dipilih!');
+      toast.error('Project aktif harus dipilih!');
       return;
     }
     if (!targetItemId || !targetQty) {
-      alert('Silakan pilih hasil kandang jadi dan jumlahnya!');
+      toast.error('Silakan pilih hasil kandang jadi dan jumlahnya!');
       return;
     }
     
     // Validate inputs
     const validInputs = inputs.filter(i => i.item_id && i.qty);
     if (validInputs.length === 0) {
-      alert('Minimal 1 bahan baku harus dipilih!');
+      toast.error('Minimal 1 bahan baku harus dipilih!');
       return;
     }
 
@@ -87,7 +88,7 @@ export default function ProduksiKandang() {
       setIsModalOpen(false);
       navigate(`/operations/production/${newProd.id}`);
     } catch (err: any) {
-      alert(err.message || 'Gagal membuat draft produksi');
+      toast.error(err.message || 'Gagal membuat draft produksi');
     } finally {
       setIsSaving(false);
     }

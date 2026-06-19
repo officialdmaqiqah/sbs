@@ -3,6 +3,7 @@ import { AlertTriangle, ShieldCheck, Plus } from 'lucide-react';
 import type { AccountingPeriod } from '../types';
 import { periodService } from '../services/periodService';
 import type { ChecklistResult } from '../services/periodService';
+import toast from 'react-hot-toast';
 
 export default function AccountingPeriods() {
   const [periods, setPeriods] = useState<AccountingPeriod[]>([]);
@@ -71,7 +72,7 @@ export default function AccountingPeriods() {
       setIsModalOpen(false);
       loadData();
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
     }
   };
 

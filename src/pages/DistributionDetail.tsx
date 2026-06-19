@@ -7,6 +7,7 @@ import { useCashBankAccounts } from '../hooks/useFinance';
 import { supabase } from '../lib/supabase';
 import Badge from '../components/Badge';
 import Modal from '../components/Modal';
+import toast from 'react-hot-toast';
 
 export default function DistributionDetail() {
   const { id } = useParams();
@@ -53,9 +54,9 @@ export default function DistributionDetail() {
         }
       }
 
-      alert(`Status berhasil diubah menjadi ${newStatus}`);
+      toast.success(`Status berhasil diubah menjadi ${newStatus}`);
     } catch(e:any) {
-      if (e.message) alert(e.message);
+      if (e.message) toast.error(e.message);
     }
     setIsProcessing(false);
   };
@@ -79,7 +80,7 @@ export default function DistributionDetail() {
       setAmount('');
       setCostNotes('');
     } catch(e:any) {
-      alert(e.message);
+      toast.error(e.message);
     }
     setIsProcessing(false);
   };

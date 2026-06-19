@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast';
  import { useState } from 'react'; 
 import { arApService } from '../services/arApService';
 import { useSupplierRefunds, useCashBankAccounts } from '../hooks/useFinance';
@@ -25,9 +26,9 @@ export default function SupplierRefunds() {
       arApService.receiveSupplierRefund(formData, 'Admin');
       setIsModalOpen(false);
       refetchRefunds();
-      alert('Refund received and posted successfully!');
+      toast.success('Refund received and posted successfully!');
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
     }
   };
 

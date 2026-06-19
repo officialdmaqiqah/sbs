@@ -6,6 +6,7 @@ import { useProject } from '../contexts/ProjectContext';
 import { useInventoryBalances } from '../hooks/useInventoryBalances';
 import Modal from '../components/Modal';
 import Badge from '../components/Badge';
+import toast from 'react-hot-toast';
 
 export default function FeedMixing() {
   const navigate = useNavigate();
@@ -54,18 +55,18 @@ export default function FeedMixing() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeProject) {
-      alert('Project aktif harus dipilih!');
+      toast.error('Project aktif harus dipilih!');
       return;
     }
     if (!targetItemId || !targetQty) {
-      alert('Silakan pilih hasil pakan jadi dan jumlahnya!');
+      toast.error('Silakan pilih hasil pakan jadi dan jumlahnya!');
       return;
     }
     
     // Validate inputs
     const validInputs = inputs.filter(i => i.item_id && i.qty);
     if (validInputs.length === 0) {
-      alert('Minimal 1 bahan pakan harus dipilih!');
+      toast.error('Minimal 1 bahan pakan harus dipilih!');
       return;
     }
 
@@ -87,7 +88,7 @@ export default function FeedMixing() {
       setIsModalOpen(false);
       navigate(`/operations/production/${newProd.id}`);
     } catch (err: any) {
-      alert(err.message || 'Gagal membuat draft racikan');
+      toast.error(err.message || 'Gagal membuat draft racikan');
     } finally {
       setIsSaving(false);
     }
