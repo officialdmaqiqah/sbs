@@ -75,6 +75,8 @@ export default function Inventory() {
   const [isGudangModalOpen, setIsGudangModalOpen] = useState(false);
   const [gudangForm, setGudangForm] = useState({ name: '', code: '' });
   const [savingGudang, setSavingGudang] = useState(false);
+  const [editingGudangId, setEditingGudangId] = useState<string | null>(null);
+  const [selectedGudangIds, setSelectedGudangIds] = useState<string[]>([]);
 
   // Kartu Stok State
   const [selectedItemId, setSelectedItemId] = useState<string>('');
@@ -150,15 +152,23 @@ export default function Inventory() {
     setSavingGudang(true);
     try {
       const repo = getDataProvider().getInventoryLocationRepository();
-      await repo.createLocation({
-        organizationId: profile.organization_id,
-        name: gudangForm.name,
-        code: gudangForm.code || `WH-${Date.now()}`,
-        locationType: 'WAREHOUSE',
-        active: true
-      });
+      if (editingGudangId) {
+        await repo.updateLocation(editingGudangId, {
+          name: gudangForm.name,
+          code: gudangForm.code
+        });
+      } else {
+        await repo.createLocation({
+          organizationId: profile.organization_id,
+          name: gudangForm.name,
+          code: gudangForm.code || `WH-${Date.now()}`,
+          locationType: 'WAREHOUSE',
+          active: true
+        });
+      }
       setIsGudangModalOpen(false);
       setGudangForm({ name: '', code: '' });
+      setEditingGudangId(null);
       refetchLocations();
     } catch (err: any) {
       alert(err.message);
@@ -176,6 +186,34 @@ export default function Inventory() {
       refetchLocations();
     } catch (err: any) {
       alert(err.message || 'Gagal menghapus gudang.');
+    }
+  };
+
+  const handleEditGudang = (loc: any) => {
+    setEditingGudangId(loc.id);
+    setGudangForm({ name: loc.name, code: loc.code || '' });
+    setIsGudangModalOpen(true);
+  };
+
+  const toggleGudangSelection = (id: string) => {
+    setSelectedGudangIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const toggleAllGudang = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) setSelectedGudangIds(locations?.map((l: any) => l.id) || []);
+    else setSelectedGudangIds([]);
+  };
+
+  const handleMassDeleteGudang = async () => {
+    if (!window.confirm(`Hapus ${selectedGudangIds.length} gudang terpilih?`)) return;
+    try {
+      const repo = getDataProvider().getInventoryLocationRepository();
+      if (!repo.deleteLocation) throw new Error('Delete location not implemented');
+      await Promise.all(selectedGudangIds.map(id => repo.deleteLocation(id)));
+      setSelectedGudangIds([]);
+      refetchLocations();
+    } catch (err: any) {
+      alert(err.message || 'Gagal menghapus beberapa gudang.');
     }
   };
 
@@ -939,10 +977,15 @@ export default function Inventory() {
       {activeTab === 'gudang' && (
         <div className="space-y-4">
           <div className="flex justify-end gap-2">
+            {selectedGudangIds.length > 0 && (
+              <button onClick={handleMassDeleteGudang} className="inline-flex items-center justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">
+                <Trash2 className="-ml-0.5 mr-2 h-4 w-4" /> Hapus Terpilih ({selectedGudangIds.length})
+              </button>
+            )}
             <button onClick={() => refetchLocations()} className="inline-flex items-center justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50">
               <RotateCcw className="-ml-0.5 mr-2 h-4 w-4" /> Refresh
             </button>
-            <button onClick={() => setIsGudangModalOpen(true)} className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500">
+            <button onClick={() => { setEditingGudangId(null); setGudangForm({ name: '', code: '' }); setIsGudangModalOpen(true); }} className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500">
               <Plus className="-ml-0.5 mr-2 h-4 w-4" /> Tambah Gudang
             </button>
           </div>
@@ -950,19 +993,28 @@ export default function Inventory() {
             <table className="min-w-full divide-y divide-slate-200">
               <thead className="bg-slate-50">
                 <tr>
-                  <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-slate-900">Nama Gudang</th>
+                  <th className="py-3.5 pl-4 pr-3 text-left w-12">
+                    <input type="checkbox" className="rounded border-slate-300 text-brand-600 focus:ring-brand-600" checked={locations?.length > 0 && selectedGudangIds.length === locations?.length} onChange={toggleAllGudang} />
+                  </th>
+                  <th className="py-3.5 px-3 text-left text-sm font-semibold text-slate-900">Nama Gudang</th>
                   <th className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">Kode</th>
                   <th className="px-3 py-3.5 text-center text-sm font-semibold text-slate-900">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 bg-white">
                 {locations?.map((loc: any) => (
-                  <tr key={loc.id}>
-                    <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-slate-900">{loc.name}</td>
+                  <tr key={loc.id} className={selectedGudangIds.includes(loc.id) ? 'bg-brand-50' : ''}>
+                    <td className="whitespace-nowrap py-4 pl-4 pr-3">
+                      <input type="checkbox" className="rounded border-slate-300 text-brand-600 focus:ring-brand-600" checked={selectedGudangIds.includes(loc.id)} onChange={() => toggleGudangSelection(loc.id)} />
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-4 text-sm font-medium text-slate-900">{loc.name}</td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500">{loc.code}</td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-center">
+                      <button onClick={() => handleEditGudang(loc)} className="text-brand-600 hover:text-brand-900 mr-4" title="Edit Gudang">
+                        <Edit2 className="h-4 w-4 inline" />
+                      </button>
                       <button onClick={() => handleDeleteGudang(loc.id, loc.name)} className="text-red-500 hover:text-red-700" title="Hapus Gudang">
-                        <Trash2 className="h-4 w-4 mx-auto" />
+                        <Trash2 className="h-4 w-4 inline" />
                       </button>
                     </td>
                   </tr>
@@ -973,8 +1025,8 @@ export default function Inventory() {
         </div>
       )}
 
-      {/* ADD GUDANG MODAL */}
-      <Modal isOpen={isGudangModalOpen} onClose={() => setIsGudangModalOpen(false)} title="Tambah Lokasi Gudang">
+      {/* ADD / EDIT GUDANG MODAL */}
+      <Modal isOpen={isGudangModalOpen} onClose={() => setIsGudangModalOpen(false)} title={editingGudangId ? "Edit Lokasi Gudang" : "Tambah Lokasi Gudang"}>
         <form onSubmit={handleSaveGudang} className="space-y-4">
           <div className="space-y-1.5">
             <label className="block text-sm font-medium text-slate-700">Nama Gudang</label>
