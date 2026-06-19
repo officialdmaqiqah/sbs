@@ -173,8 +173,39 @@ export function useAPAging(asOfDate?: string) {
 }
 
 export function useAccounts() {
-  const fetchFn = useCallback(() => db.query('accounts', () => true), []);
-  return useGenericDataFetch(fetchFn);
+  const fetchFn = useCallback(async () => {
+    const isSupabase = localStorage.getItem('VITE_DATA_PROVIDER') === 'supabase' || import.meta.env.VITE_DATA_PROVIDER === 'supabase';
+    if (isSupabase) {
+      const { supabase } = await import('../lib/supabase');
+      const { data, error } = await supabase.from('chart_of_accounts').select('*');
+      if (error) throw error;
+      return data;
+    }
+    return db.query('accounts', () => true);
+  }, []);
+  
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await fetchFn();
+      setData(result);
+    } catch (err: any) {
+      setError(err.message || 'An error occurred while fetching data');
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchFn]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { data, loading, error, refetch: fetchData };
 }
 
 export function useAccountLedger(accountId: string) {
