@@ -3,7 +3,7 @@ import { db } from '../services/db';
 import { stockOpnameService } from '../services/stockOpname';
 import { costingService } from '../services/costing';
 import type { StockOpname, StockOpnameItem } from '../types';
-import { ListFilter, ArrowDownLeft, ArrowUpRight, Plus, AlertTriangle, FileText, PackageCheck, RotateCcw, Box, Trash2 } from 'lucide-react';
+import { ListFilter, ArrowDownLeft, ArrowUpRight, Plus, AlertTriangle, FileText, PackageCheck, RotateCcw, Box, Trash2, Edit2 } from 'lucide-react';
 import Badge from '../components/Badge';
 import Modal from '../components/Modal';
 import { Navigate } from 'react-router-dom';
@@ -56,6 +56,7 @@ export default function Inventory() {
 
   // Add Item State
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [itemForm, setItemForm] = useState({ name: '', category: 'RAW_MATERIAL', unit: 'KG', price: 0 });
   const [savingItem, setSavingItem] = useState(false);
 
@@ -88,15 +89,25 @@ export default function Inventory() {
     setSavingItem(true);
     try {
       const repo = getDataProvider().getItemRepository();
-      const code = `ITM-${Date.now().toString().slice(-6)}`;
-      await repo.createItem({
-        organizationId: profile?.organization_id,
-        name: itemForm.name,
-        code,
-        category: itemForm.category,
-        unit: itemForm.unit,
-        active: true
-      });
+      
+      if (editingItemId) {
+        await repo.updateItem(editingItemId, {
+          name: itemForm.name,
+          category: itemForm.category,
+          unit: itemForm.unit,
+          active: true
+        });
+      } else {
+        const code = `ITM-${Date.now().toString().slice(-6)}`;
+        await repo.createItem({
+          organizationId: profile?.organization_id,
+          name: itemForm.name,
+          code,
+          category: itemForm.category,
+          unit: itemForm.unit,
+          active: true
+        });
+      }
       setIsItemModalOpen(false);
       window.location.reload(); 
     } catch (err: any) {
@@ -115,6 +126,23 @@ export default function Inventory() {
     } catch (err: any) {
       alert(err.message || 'Gagal menghapus barang. Barang mungkin sudah digunakan dalam transaksi.');
     }
+  };
+
+  const handleEditItem = (item: any) => {
+    setEditingItemId(item.id);
+    setItemForm({
+      name: item.name,
+      category: item.category,
+      unit: item.unit,
+      price: item.sellingPrice || 0
+    });
+    setIsItemModalOpen(true);
+  };
+
+  const handleOpenAddItem = () => {
+    setEditingItemId(null);
+    setItemForm({ name: '', category: 'RAW_MATERIAL', unit: 'KG', price: 0 });
+    setIsItemModalOpen(true);
   };
 
   // Stock Opname State
@@ -411,6 +439,9 @@ export default function Inventory() {
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500 text-right">Rp {avg.toLocaleString('id-ID')}</td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm font-medium text-slate-900 text-right">Rp {(stock * avg).toLocaleString('id-ID')}</td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-center">
+                    <button onClick={() => handleEditItem(item)} className="text-blue-500 hover:text-blue-700 mr-3" title="Edit Barang">
+                      <Edit2 className="h-4 w-4 mx-auto" />
+                    </button>
                     <button onClick={() => handleDeleteItem(item.id, item.name)} className="text-red-500 hover:text-red-700" title="Hapus Barang">
                       <Trash2 className="h-4 w-4 mx-auto" />
                     </button>
@@ -818,8 +849,8 @@ export default function Inventory() {
         </form>
       </Modal>
 
-      {/* ITEM MODAL */}
-      <Modal isOpen={isItemModalOpen} onClose={() => setIsItemModalOpen(false)} title="Tambah Barang Master">
+      {/* ADD / EDIT ITEM MODAL */}
+      <Modal isOpen={isItemModalOpen} onClose={() => setIsItemModalOpen(false)} title={editingItemId ? "Edit Barang Master" : "Tambah Barang Master"}>
         <form onSubmit={handleSaveItem} className="space-y-4">
           <div className="space-y-1.5">
             <label className="block text-sm font-medium text-slate-700">Nama Barang</label>
