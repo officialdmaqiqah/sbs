@@ -89,13 +89,14 @@ export default function Inventory() {
       const repo = getDataProvider().getItemRepository();
       const code = `ITM-${Date.now().toString().slice(-6)}`;
       await repo.createItem({
+        organizationId: profile?.organization_id,
         name: itemForm.name,
         code,
-        category: itemForm.category as any,
-        uom: itemForm.unit,
+        category: itemForm.category,
+        unit: itemForm.unit,
         active: true,
-        selling_price: itemForm.price,
-        item_type: 'RAW_MATERIAL'
+        sellingPrice: itemForm.price,
+        itemType: 'RAW_MATERIAL'
       });
       setIsItemModalOpen(false);
       window.location.reload(); 
