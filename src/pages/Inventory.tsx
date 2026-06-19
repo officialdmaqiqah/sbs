@@ -64,6 +64,7 @@ export default function Inventory() {
     'EQUIPMENT': 'Peralatan / Aset Kerja',
     'PACKAGING': 'Packaging / Kemasan',
     'CONSUMABLE': 'Barang Habis Pakai',
+    'MEDICAL': 'Obat & Vitamin (Medical)',
     'Ayam Petelur': 'Ayam Petelur (Ternak Hidup)',
     'FINISHED_GOODS': 'Barang Jadi / Produk'
   };
@@ -874,6 +875,7 @@ export default function Inventory() {
                 <option value="EQUIPMENT">Peralatan / Aset Kerja</option>
                 <option value="PACKAGING">Packaging / Kemasan</option>
                 <option value="CONSUMABLE">Barang Habis Pakai</option>
+                <option value="MEDICAL">Obat & Vitamin (Medical)</option>
                 <option value="Ayam Petelur">Ayam Petelur (Ternak Hidup)</option>
                 <option value="FINISHED_GOODS">Barang Jadi / Produk</option>
               </select>
