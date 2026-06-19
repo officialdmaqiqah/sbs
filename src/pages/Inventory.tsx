@@ -94,9 +94,7 @@ export default function Inventory() {
         code,
         category: itemForm.category,
         unit: itemForm.unit,
-        active: true,
-        sellingPrice: itemForm.price,
-        itemType: 'RAW_MATERIAL'
+        active: true
       });
       setIsItemModalOpen(false);
       window.location.reload(); 
