@@ -4,6 +4,7 @@ import { ArrowLeft, Users, DollarSign, LayoutDashboard, Plus, Trash2 } from 'luc
 import { supabase } from '../lib/supabase';
 import Badge from '../components/Badge';
 import Modal from '../components/Modal';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
 import { useProject, type Project } from '../contexts/ProjectContext';
 import { useCashBankMutations } from '../hooks/useCashBankMutations';
 import { useCashBankAccounts } from '../hooks/useFinance';
@@ -324,6 +325,14 @@ function ProjectCapital({ projectId, investments, reload, accounts, teamMembers 
   const [cashBankId, setCashBankId] = useState('');
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'warning' as 'warning' | 'danger' | 'info',
+    action: () => {},
+    confirmText: ''
+  });
 
   const handleAdd = async (e: any) => {
     e.preventDefault();
@@ -373,40 +382,62 @@ function ProjectCapital({ projectId, investments, reload, accounts, teamMembers 
 
   const syncToCash = async (inv: any) => {
     if(!inv.cash_bank_id) return alert('Pilih akun Kas/Bank terlebih dahulu sebelum sinkronasi.');
-    if(confirm(`Catat uang masuk Rp ${inv.amount.toLocaleString('id-ID')} ke Kas?`)) {
-      try {
-        await supabase.from('cash_bank_mutations').insert({
-          mutation_type: 'IN',
-          to_cash_bank_id: inv.cash_bank_id,
-          project_id: projectId,
-          amount: inv.amount,
-          source_module: 'PROJECT_CAPITAL',
-          reference_type: 'PROJECT_CAPITAL',
-          reference_id: inv.id,
-          mutation_date: new Date().toISOString().split('T')[0],
-          notes: `Setoran Modal dari ${inv.investors?.name} - ${inv.notes || ''}`
-        });
+    
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Catat ke Kas',
+      message: `Catat uang masuk Rp ${inv.amount.toLocaleString('id-ID')} ke Kas?`,
+      type: 'info',
+      confirmText: 'Ya, Catat',
+      action: async () => {
+        setIsSubmitting(true);
+        try {
+          await supabase.from('cash_bank_mutations').insert({
+            mutation_type: 'IN',
+            to_cash_bank_id: inv.cash_bank_id,
+            project_id: projectId,
+            amount: inv.amount,
+            source_module: 'PROJECT_CAPITAL',
+            reference_type: 'PROJECT_CAPITAL',
+            reference_id: inv.id,
+            mutation_date: new Date().toISOString().split('T')[0],
+            notes: `Setoran Modal dari ${inv.investors?.name} - ${inv.notes || ''}`
+          });
 
-        await supabase.from('project_investments').update({ is_synced_to_cash: true }).eq('id', inv.id);
-        reload();
-        alert('Sukses mencatat ke mutasi Kas!');
-      } catch (e: any) {
-        console.error(e);
-        alert('Gagal menyinkronkan: ' + e.message);
+          await supabase.from('project_investments').update({ is_synced_to_cash: true }).eq('id', inv.id);
+          reload();
+          setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+        } catch (e: any) {
+          console.error(e);
+          alert('Gagal menyinkronkan: ' + e.message);
+        } finally {
+          setIsSubmitting(false);
+        }
       }
-    }
+    });
   };
 
   const handleDelete = async (inv: any) => {
-    if(confirm('Hapus pencatatan modal ini?')) {
-      try {
-        await supabase.from('project_investments').delete().eq('id', inv.id);
-        reload();
-      } catch (e: any) {
-        console.error(e);
-        alert('Gagal menghapus modal');
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Hapus Pencatatan',
+      message: 'Apakah Anda yakin ingin menghapus pencatatan modal ini? Data yang sudah dihapus tidak dapat dikembalikan.',
+      type: 'danger',
+      confirmText: 'Ya, Hapus',
+      action: async () => {
+        setIsSubmitting(true);
+        try {
+          await supabase.from('project_investments').delete().eq('id', inv.id);
+          reload();
+          setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+        } catch (e: any) {
+          console.error(e);
+          alert('Gagal menghapus modal');
+        } finally {
+          setIsSubmitting(false);
+        }
       }
-    }
+    });
   };
 
   return (
@@ -505,6 +536,17 @@ function ProjectCapital({ projectId, investments, reload, accounts, teamMembers 
           </div>
         </form>
       </Modal>
+
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        type={confirmDialog.type}
+        confirmText={confirmDialog.confirmText}
+        isLoading={isSubmitting}
+        onClose={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmDialog.action}
+      />
     </div>
   );
 }
