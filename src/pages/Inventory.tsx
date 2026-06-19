@@ -861,6 +861,7 @@ export default function Inventory() {
               <label className="block text-sm font-medium text-slate-700">Kategori</label>
               <select className="w-full border rounded-md px-3 py-2" value={itemForm.category} onChange={e => setItemForm({...itemForm, category: e.target.value})}>
                 <option value="RAW_MATERIAL">Bahan Baku (Material)</option>
+                <option value="EQUIPMENT">Peralatan / Aset Kerja</option>
                 <option value="PACKAGING">Packaging / Kemasan</option>
                 <option value="CONSUMABLE">Barang Habis Pakai</option>
                 <option value="FINISHED_GOODS">Barang Jadi / Produk</option>
