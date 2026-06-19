@@ -85,7 +85,6 @@ export class SupabaseInventoryLocationRepository implements InventoryLocationRep
     if (feObj.organizationId !== undefined) dbObj.organization_id = feObj.organizationId;
     if (feObj.code !== undefined) dbObj.code = feObj.code;
     if (feObj.name !== undefined) dbObj.name = feObj.name;
-    if (feObj.locationType !== undefined) dbObj.location_type = feObj.locationType;
     if (feObj.active !== undefined) dbObj.active = feObj.active;
     return dbObj;
   }

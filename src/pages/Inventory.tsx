@@ -19,6 +19,7 @@ import { useInventoryBalances } from '../hooks/useInventoryBalances';
 import { usePostInventoryTransaction } from '../hooks/usePostInventoryTransaction';
 import { useCashBankMutations } from '../hooks/useCashBankMutations';
 import { useCashBankAccounts } from '../hooks/useFinance';
+import toast from 'react-hot-toast';
 
 export default function Inventory() {
   const { profile } = useAuth();
@@ -128,8 +129,9 @@ export default function Inventory() {
       }
       setIsItemModalOpen(false);
       refetchItems();
+      toast.success('Barang berhasil disimpan');
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
     } finally {
       setSavingItem(false);
     }
@@ -141,14 +143,18 @@ export default function Inventory() {
       const { error } = await supabase.from('items').delete().eq('id', id);
       if (error) throw error;
       refetchItems();
+      toast.success('Barang berhasil dihapus');
     } catch (err: any) {
-      alert(err.message || 'Gagal menghapus barang. Barang mungkin sudah digunakan dalam transaksi.');
+      toast.error(err.message || 'Gagal menghapus barang. Barang mungkin sudah digunakan dalam transaksi.');
     }
   };
 
   const handleSaveGudang = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!profile?.organization_id) return alert('Organization ID not found');
+    if (!profile?.organization_id) {
+      toast.error('Organization ID not found');
+      return;
+    }
     setSavingGudang(true);
     try {
       const repo = getDataProvider().getInventoryLocationRepository();
@@ -170,8 +176,9 @@ export default function Inventory() {
       setGudangForm({ name: '', code: '' });
       setEditingGudangId(null);
       refetchLocations();
+      toast.success('Gudang berhasil disimpan');
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
     } finally {
       setSavingGudang(false);
     }
@@ -184,8 +191,9 @@ export default function Inventory() {
       if (!repo.deleteLocation) throw new Error('Delete location not implemented');
       await repo.deleteLocation(id);
       refetchLocations();
+      toast.success('Gudang berhasil dihapus');
     } catch (err: any) {
-      alert(err.message || 'Gagal menghapus gudang.');
+      toast.error(err.message || 'Gagal menghapus gudang.');
     }
   };
 
@@ -212,8 +220,9 @@ export default function Inventory() {
       await Promise.all(selectedGudangIds.map(id => repo.deleteLocation(id)));
       setSelectedGudangIds([]);
       refetchLocations();
+      toast.success(`${selectedGudangIds.length} gudang berhasil dihapus`);
     } catch (err: any) {
-      alert(err.message || 'Gagal menghapus beberapa gudang.');
+      toast.error(err.message || 'Gagal menghapus beberapa gudang.');
     }
   };
 
@@ -287,7 +296,10 @@ export default function Inventory() {
   // --- STOCK OPNAME ACTIONS ---
   const handleCreateOpname = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!opnameForm.project_id || !opnameForm.location) return alert('Lengkapi Project dan Lokasi Gudang');
+    if (!opnameForm.project_id || !opnameForm.location) {
+      toast.error('Lengkapi Project dan Lokasi Gudang');
+      return;
+    }
 
     const count = opnames.length + 1;
     const docNum = `SO-${new Date().getFullYear()}${String(new Date().getMonth()+1).padStart(2, '0')}-${String(count).padStart(3, '0')}`;
@@ -409,6 +421,7 @@ export default function Inventory() {
       setMutasiForm({ projectId: '', locationId: '', itemId: '', date: new Date().toISOString().split('T')[0], direction: 'IN', quantity: '', unitCost: '', referenceNumber: '', notes: '', transactionId: '', isPurchase: false, cashAccountId: '' });
       refetchMovements();
       refetchBalances();
+      toast.success('Mutasi berhasil disimpan');
     } catch (err: any) {
       setMutasiError(err.message || 'Gagal menyimpan mutasi');
     }
@@ -446,7 +459,7 @@ export default function Inventory() {
       setConcurrencyWarning('');
       loadData();
     } else {
-      if (!res.requireOverride) alert(`Gagal: ${res.message}`);
+      if (!res.requireOverride) toast.error(`Gagal: ${res.message}`);
     }
   };
 

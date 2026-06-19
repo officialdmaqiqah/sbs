@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import DashboardLayout from './components/DashboardLayout';
 
 import { AuthProvider } from './contexts/AuthContext';
@@ -15,8 +16,6 @@ import Users from './pages/admin/Users';
 import Roles from './pages/admin/Roles';
 import Permissions from './pages/admin/Permissions';
 import ProjectAccess from './pages/admin/ProjectAccess';
-
-
 
 import Projects from './pages/Projects';
 import ProjectDetail from './pages/ProjectDetail';
@@ -74,6 +73,7 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <Toaster position="top-center" />
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
