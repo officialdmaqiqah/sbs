@@ -126,7 +126,7 @@ export function useProjectClosing(projectId?: string) {
       // 4. Fetch Members & Investors
       const { data: members } = await supabase
         .from('project_members')
-        .select('user_id, role, profiles(full_name)')
+        .select('user_id, role, member_name, profiles(full_name)')
         .eq('project_id', projectId);
 
       const { data: investments } = await supabase
