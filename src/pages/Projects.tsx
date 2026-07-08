@@ -7,6 +7,8 @@ import Badge from '../components/Badge';
 import { useProjects } from '../hooks/useProjects';
 import { useProject } from '../contexts/ProjectContext';
 import { getDataProvider } from '../providers';
+import { useTableSort } from '../hooks/useTableSort';
+import SortIcon from '../components/SortIcon';
 
 export default function Projects() {
   const { data: rawProjects, loading, error, refetch } = useProjects();
@@ -39,6 +41,8 @@ export default function Projects() {
     }
     return data;
   }, [rawProjects, search, statusFilter]);
+
+  const { sortedData: sortedProjects, requestSort, sortConfig } = useTableSort(projects);
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
@@ -166,11 +170,11 @@ export default function Projects() {
           <table className="min-w-full divide-y divide-slate-200">
             <thead className="bg-slate-50">
               <tr>
-                <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-slate-900 sm:pl-6">Kode</th>
-                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">Nama Project</th>
-                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">Status</th>
-                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">Mulai</th>
-                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">Selesai</th>
+                <th scope="col" onClick={() => requestSort('code')} className="cursor-pointer py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-slate-900 sm:pl-6 hover:bg-slate-100">Kode <SortIcon columnKey="code" sortConfig={sortConfig} /></th>
+                <th scope="col" onClick={() => requestSort('name')} className="cursor-pointer px-3 py-3.5 text-left text-sm font-semibold text-slate-900 hover:bg-slate-100">Nama Project <SortIcon columnKey="name" sortConfig={sortConfig} /></th>
+                <th scope="col" onClick={() => requestSort('status')} className="cursor-pointer px-3 py-3.5 text-left text-sm font-semibold text-slate-900 hover:bg-slate-100">Status <SortIcon columnKey="status" sortConfig={sortConfig} /></th>
+                <th scope="col" onClick={() => requestSort('startDate')} className="cursor-pointer px-3 py-3.5 text-left text-sm font-semibold text-slate-900 hover:bg-slate-100">Mulai <SortIcon columnKey="startDate" sortConfig={sortConfig} /></th>
+                <th scope="col" onClick={() => requestSort('endDate')} className="cursor-pointer px-3 py-3.5 text-left text-sm font-semibold text-slate-900 hover:bg-slate-100">Selesai <SortIcon columnKey="endDate" sortConfig={sortConfig} /></th>
                 <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
                   <span className="sr-only">Aksi</span>
                 </th>
@@ -181,14 +185,14 @@ export default function Projects() {
                 <tr>
                   <td colSpan={6} className="py-8 text-center text-sm text-slate-500">Memuat data...</td>
                 </tr>
-              ) : projects.length === 0 ? (
+              ) : sortedProjects.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-12 text-center text-sm text-slate-500">
                     Tidak ada project ditemukan.
                     <span className="text-xs text-slate-400 mt-2 block">Mulai dengan membuat project baru. Semua transaksi SBS akan dicatat berdasarkan project.</span>
                   </td>
                 </tr>
-              ) : projects.map((project) => (
+              ) : sortedProjects.map((project: any) => (
                 <tr key={project.id} className="hover:bg-slate-50">
                   <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-slate-900 sm:pl-6">
                     {project.code || '-'}

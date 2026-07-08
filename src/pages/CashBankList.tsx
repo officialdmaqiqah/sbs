@@ -11,6 +11,8 @@ import { useCashBankMutations } from '../hooks/useCashBankMutations';
 import CashBankLedger from '../components/finance/CashBankLedger';
 import { useProject } from '../contexts/ProjectContext';
 import { CurrencyInput } from '../components/ui/CurrencyInput';
+import { useTableSort } from '../hooks/useTableSort';
+import SortIcon from '../components/SortIcon';
 
 export default function CashBankList() {
   const { activeProject, availableProjects } = useProject();
@@ -54,6 +56,10 @@ export default function CashBankList() {
       return matchSearch && matchType;
     });
   }, [accounts, search, filterType]);
+
+  const { sortedData: sortedAccounts, requestSort, sortConfig } = useTableSort(filteredAccounts, {
+    balance: (acc) => accountBalances[acc.id] || 0
+  });
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
@@ -201,17 +207,17 @@ export default function CashBankList() {
         <table className="min-w-full divide-y divide-slate-200">
           <thead className="bg-slate-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Kode</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Nama Akun</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Tipe</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Detail Bank</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Saldo Saat Ini</th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+              <th onClick={() => requestSort('account_code')} className="cursor-pointer px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider hover:bg-slate-100">Kode <SortIcon columnKey="account_code" sortConfig={sortConfig} /></th>
+              <th onClick={() => requestSort('account_name')} className="cursor-pointer px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider hover:bg-slate-100">Nama Akun <SortIcon columnKey="account_name" sortConfig={sortConfig} /></th>
+              <th onClick={() => requestSort('account_type')} className="cursor-pointer px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider hover:bg-slate-100">Tipe <SortIcon columnKey="account_type" sortConfig={sortConfig} /></th>
+              <th onClick={() => requestSort('bank_name')} className="cursor-pointer px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider hover:bg-slate-100">Detail Bank <SortIcon columnKey="bank_name" sortConfig={sortConfig} /></th>
+              <th onClick={() => requestSort('balance')} className="cursor-pointer px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider hover:bg-slate-100">Saldo Saat Ini <SortIcon columnKey="balance" sortConfig={sortConfig} /></th>
+              <th onClick={() => requestSort('active')} className="cursor-pointer px-6 py-3 text-center text-xs font-medium text-slate-500 uppercase tracking-wider hover:bg-slate-100">Status <SortIcon columnKey="active" sortConfig={sortConfig} /></th>
               <th className="px-6 py-3 text-center text-xs font-medium text-slate-500 uppercase tracking-wider">Aksi</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200 bg-white">
-            {filteredAccounts.map(acc => {
+            {sortedAccounts.map(acc => {
               return (
                 <tr key={acc.id} className="hover:bg-slate-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 font-medium">{acc.account_code}</td>
@@ -240,7 +246,7 @@ export default function CashBankList() {
                 </tr>
               );
             })}
-            {filteredAccounts.length === 0 && (
+            {sortedAccounts.length === 0 && (
               <tr>
                 <td colSpan={7} className="px-6 py-4 text-center text-sm text-slate-500">
                   No accounts found.

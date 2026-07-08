@@ -7,6 +7,8 @@ import { arApService } from '../services/arApService';
 import Modal from '../components/Modal';
 import Badge from '../components/Badge';
 import { Plus, Edit, Search, PackagePlus, AlertCircle, Trash2, RotateCcw, FileText } from 'lucide-react';
+import { useTableSort } from '../hooks/useTableSort';
+import SortIcon from '../components/SortIcon';
 import toast from 'react-hot-toast';
 import { confirmAlert } from '../components/ui/ConfirmAlert';
 import { CurrencyInput } from '../components/ui/CurrencyInput';
@@ -428,6 +430,17 @@ export default function Purchase() {
   const getItemName = (id: string) => items.find(i => i.id === id)?.name || 'Unknown';
   const getItemUnit = (id: string) => items.find(i => i.id === id)?.unit || '';
 
+  const { sortedData: sortedSuppliers, requestSort: sortSupplier, sortConfig: supplierSortConfig } = useTableSort(filteredSuppliers);
+  const { sortedData: sortedPOs, requestSort: sortPO, sortConfig: poSortConfig } = useTableSort(filteredPOs, {
+    supplier_id: (po) => getSupplierName(po.supplier_id),
+    project_id: (po) => getProjectName(po.project_id)
+  });
+
+  const getSupplierName = (id: string) => suppliers.find(s => s.id === id)?.name || 'Unknown';
+  const getProjectName = (id: string) => projects.find(p => p.id === id)?.name || 'Unknown';
+  const getItemName = (id: string) => items.find(i => i.id === id)?.name || 'Unknown';
+  const getItemUnit = (id: string) => items.find(i => i.id === id)?.unit || '';
+
   const getPOBadgeColor = (status: string) => {
     switch(status) {
       case 'Draft': return 'default';
@@ -556,16 +569,16 @@ export default function Purchase() {
                 <th className="py-3.5 pl-4 pr-3 text-left w-12">
                   <input type="checkbox" className="rounded border-slate-300 text-brand-600 focus:ring-brand-600" checked={filteredSuppliers.length > 0 && selectedSupplierIds.length === filteredSuppliers.length} onChange={toggleAllSuppliers} />
                 </th>
-                <th scope="col" className="py-3.5 px-3 text-left text-sm font-semibold text-slate-900">Kode</th>
-                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">Nama Supplier</th>
-                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">Kategori</th>
-                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">Telepon</th>
-                <th scope="col" className="px-3 py-3.5 text-center text-sm font-semibold text-slate-900">Status</th>
+                <th scope="col" onClick={() => sortSupplier('code')} className="cursor-pointer py-3.5 px-3 text-left text-sm font-semibold text-slate-900 hover:bg-slate-100">Kode <SortIcon columnKey="code" sortConfig={supplierSortConfig} /></th>
+                <th scope="col" onClick={() => sortSupplier('name')} className="cursor-pointer px-3 py-3.5 text-left text-sm font-semibold text-slate-900 hover:bg-slate-100">Nama Supplier <SortIcon columnKey="name" sortConfig={supplierSortConfig} /></th>
+                <th scope="col" onClick={() => sortSupplier('category')} className="cursor-pointer px-3 py-3.5 text-left text-sm font-semibold text-slate-900 hover:bg-slate-100">Kategori <SortIcon columnKey="category" sortConfig={supplierSortConfig} /></th>
+                <th scope="col" onClick={() => sortSupplier('phone')} className="cursor-pointer px-3 py-3.5 text-left text-sm font-semibold text-slate-900 hover:bg-slate-100">Telepon <SortIcon columnKey="phone" sortConfig={supplierSortConfig} /></th>
+                <th scope="col" onClick={() => sortSupplier('is_active')} className="cursor-pointer px-3 py-3.5 text-center text-sm font-semibold text-slate-900 hover:bg-slate-100">Status <SortIcon columnKey="is_active" sortConfig={supplierSortConfig} /></th>
                 <th scope="col" className="px-3 py-3.5 text-center text-sm font-semibold text-slate-900">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 bg-white">
-              {filteredSuppliers.map((s) => (
+              {sortedSuppliers.map((s) => (
                 <tr key={s.id} className={selectedSupplierIds.includes(s.id) ? 'bg-brand-50' : ''}>
                   <td className="whitespace-nowrap py-4 pl-4 pr-3">
                     <input type="checkbox" className="rounded border-slate-300 text-brand-600 focus:ring-brand-600" checked={selectedSupplierIds.includes(s.id)} onChange={() => toggleSupplierSelection(s.id)} />
@@ -583,7 +596,7 @@ export default function Purchase() {
                   </td>
                 </tr>
               ))}
-              {filteredSuppliers.length === 0 && (
+              {sortedSuppliers.length === 0 && (
                 <tr><td colSpan={7} className="py-8 text-center text-sm text-slate-500">Tidak ada supplier ditemukan.</td></tr>
               )}
             </tbody>
@@ -592,17 +605,17 @@ export default function Purchase() {
           <table className="min-w-full divide-y divide-slate-200">
             <thead className="bg-slate-50">
               <tr>
-                <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-slate-900">Nomor PO</th>
-                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">Tanggal</th>
-                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">Supplier</th>
-                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">Project</th>
-                <th scope="col" className="px-3 py-3.5 text-right text-sm font-semibold text-slate-900">Total (Rp)</th>
-                <th scope="col" className="px-3 py-3.5 text-center text-sm font-semibold text-slate-900">Status</th>
+                <th scope="col" onClick={() => sortPO('po_number')} className="cursor-pointer py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-slate-900 hover:bg-slate-100">Nomor PO <SortIcon columnKey="po_number" sortConfig={poSortConfig} /></th>
+                <th scope="col" onClick={() => sortPO('date')} className="cursor-pointer px-3 py-3.5 text-left text-sm font-semibold text-slate-900 hover:bg-slate-100">Tanggal <SortIcon columnKey="date" sortConfig={poSortConfig} /></th>
+                <th scope="col" onClick={() => sortPO('supplier_id')} className="cursor-pointer px-3 py-3.5 text-left text-sm font-semibold text-slate-900 hover:bg-slate-100">Supplier <SortIcon columnKey="supplier_id" sortConfig={poSortConfig} /></th>
+                <th scope="col" onClick={() => sortPO('project_id')} className="cursor-pointer px-3 py-3.5 text-left text-sm font-semibold text-slate-900 hover:bg-slate-100">Project <SortIcon columnKey="project_id" sortConfig={poSortConfig} /></th>
+                <th scope="col" onClick={() => sortPO('total_amount')} className="cursor-pointer px-3 py-3.5 text-right text-sm font-semibold text-slate-900 hover:bg-slate-100">Total (Rp) <SortIcon columnKey="total_amount" sortConfig={poSortConfig} /></th>
+                <th scope="col" onClick={() => sortPO('status')} className="cursor-pointer px-3 py-3.5 text-center text-sm font-semibold text-slate-900 hover:bg-slate-100">Status <SortIcon columnKey="status" sortConfig={poSortConfig} /></th>
                 <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6"><span className="sr-only">Actions</span></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 bg-white">
-              {filteredPOs.map((po) => (
+              {sortedPOs.map((po) => (
                 <tr key={po.id}>
                   <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-slate-900">{po.po_number}</td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500">{new Date(po.date || (po as any).po_date).toLocaleDateString('id-ID')}</td>
@@ -657,8 +670,8 @@ export default function Purchase() {
                   </td>
                 </tr>
               ))}
-              {filteredPOs.length === 0 && (
-                <tr><td colSpan={7} className="py-8 text-center text-sm text-slate-500">Tidak ada Purchase Order ditemukan.</td></tr>
+              {sortedPOs.length === 0 && (
+                <tr><td colSpan={7} className="py-8 text-center text-sm text-slate-500">Tidak ada PO ditemukan.</td></tr>
               )}
             </tbody>
           </table>

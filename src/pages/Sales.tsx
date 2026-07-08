@@ -7,6 +7,8 @@ import type { SalesOrder, Project, Product, Package, InventoryReservation, Sales
 import Modal from '../components/Modal';
 import Badge from '../components/Badge';
 import { Edit, Search, ShoppingCart, AlertTriangle, Info, CheckCircle, Truck, Box } from 'lucide-react';
+import { useTableSort } from '../hooks/useTableSort';
+import SortIcon from '../components/SortIcon';
 import { useAuth } from '../contexts/AuthContext';
 import { CurrencyInput } from '../components/ui/CurrencyInput';
 
@@ -141,6 +143,11 @@ export default function Sales() {
     o.customer_name.toLowerCase().includes(search.toLowerCase()) ||
     getItemName(o.order_type, o.item_id).toLowerCase().includes(search.toLowerCase())
   );
+
+  const { sortedData: sortedOrders, requestSort: sortOrder, sortConfig: orderSortConfig } = useTableSort(filteredOrders, {
+    item_id: (o) => getItemName(o.order_type, o.item_id),
+    total: (o) => (o.qty * o.unit_price) - o.discount + o.shipping_cost
+  });
 
   // Workflow Actions
   const handleConfirmOrder = async (id: string) => {
@@ -341,18 +348,18 @@ export default function Sales() {
         <table className="min-w-full divide-y divide-slate-200">
           <thead className="table-header">
             <tr>
-              <th className="py-3.5 pl-4 pr-3 text-left">No. Order</th>
-              <th className="px-3 py-3.5 text-left">Tanggal</th>
-              <th className="px-3 py-3.5 text-left">Customer</th>
-              <th className="px-3 py-3.5 text-left">Produk/Paket</th>
-              <th className="px-3 py-3.5 text-right">Total (Rp)</th>
-              <th className="px-3 py-3.5 text-center">Bayar</th>
-              <th className="px-3 py-3.5 text-center">Status</th>
+              <th onClick={() => sortOrder('order_number')} className="cursor-pointer py-3.5 pl-4 pr-3 text-left hover:bg-slate-50">No. Order <SortIcon columnKey="order_number" sortConfig={orderSortConfig} /></th>
+              <th onClick={() => sortOrder('date')} className="cursor-pointer px-3 py-3.5 text-left hover:bg-slate-50">Tanggal <SortIcon columnKey="date" sortConfig={orderSortConfig} /></th>
+              <th onClick={() => sortOrder('customer_name')} className="cursor-pointer px-3 py-3.5 text-left hover:bg-slate-50">Customer <SortIcon columnKey="customer_name" sortConfig={orderSortConfig} /></th>
+              <th onClick={() => sortOrder('item_id')} className="cursor-pointer px-3 py-3.5 text-left hover:bg-slate-50">Produk/Paket <SortIcon columnKey="item_id" sortConfig={orderSortConfig} /></th>
+              <th onClick={() => sortOrder('total')} className="cursor-pointer px-3 py-3.5 text-right hover:bg-slate-50">Total (Rp) <SortIcon columnKey="total" sortConfig={orderSortConfig} /></th>
+              <th onClick={() => sortOrder('payment_status')} className="cursor-pointer px-3 py-3.5 text-center hover:bg-slate-50">Bayar <SortIcon columnKey="payment_status" sortConfig={orderSortConfig} /></th>
+              <th onClick={() => sortOrder('status')} className="cursor-pointer px-3 py-3.5 text-center hover:bg-slate-50">Status <SortIcon columnKey="status" sortConfig={orderSortConfig} /></th>
               <th className="relative py-3.5 pl-3 pr-4 sm:pr-6"><span className="sr-only">Aksi</span></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200 bg-white">
-            {filteredOrders.map((o) => {
+            {sortedOrders.map((o) => {
               const subtotal = o.qty * o.unit_price;
               const total = subtotal - o.discount + o.shipping_cost;
               return (
