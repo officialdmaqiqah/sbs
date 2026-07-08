@@ -179,7 +179,7 @@ export default function Purchase() {
     setPoForm({
       supplier_id: po.supplier_id,
       project_id: po.project_id,
-      date: po.date ? po.date.split('T')[0] : new Date().toISOString().split('T')[0],
+      date: (po.date || (po as any).po_date) ? (po.date || (po as any).po_date).split('T')[0] : new Date().toISOString().split('T')[0],
       shipping_cost: po.shipping_cost || 0,
       notes: po.notes || ''
     });
