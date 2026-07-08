@@ -73,7 +73,11 @@ export default function CashBankList() {
           name: formData.account_name,
           code: formData.account_code,
           type: formData.account_type,
-          account_id: formData.gl_account_id
+          account_id: formData.gl_account_id,
+          bank_name: formData.account_type === 'Bank' ? formData.bank_name : null,
+          bank_account_number: formData.account_type === 'Bank' ? formData.bank_account_number : null,
+          account_holder: formData.account_type === 'Bank' ? formData.account_holder : null,
+          notes: formData.notes
         }).eq('id', selectedAccount.id);
         if (error) throw error;
       } else {
@@ -83,6 +87,10 @@ export default function CashBankList() {
           name: formData.account_name,
           code: formData.account_code,
           type: formData.account_type,
+          bank_name: formData.account_type === 'Bank' ? formData.bank_name : null,
+          bank_account_number: formData.account_type === 'Bank' ? formData.bank_account_number : null,
+          account_holder: formData.account_type === 'Bank' ? formData.account_holder : null,
+          notes: formData.notes,
           active: true
         });
         if (error) throw error;
