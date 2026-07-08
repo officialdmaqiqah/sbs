@@ -432,7 +432,7 @@ export default function Sales() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-900">Harga Satuan (Rp)</label>
-                <CurrencyInput  required value={form.unit_price} onChange={(val) => setForm({...form, unit_price: val})} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-sm" />
+                <CurrencyInput  required value={form.unit_price || ""} onChange={(val) => setForm({...form, unit_price: val})} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-sm" />
               </div>
             </div>
           </div>
@@ -441,11 +441,11 @@ export default function Sales() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-900">Diskon (Rp)</label>
-                <CurrencyInput  min="0" value={form.discount} onChange={(val) => setForm({...form, discount: val})} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-sm" />
+                <CurrencyInput  min="0" value={form.discount || ""} onChange={(val) => setForm({...form, discount: val})} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-sm" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-900">Ongkos Kirim (Rp)</label>
-                <CurrencyInput  min="0" value={form.shipping_cost} onChange={(val) => setForm({...form, shipping_cost: val})} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-sm" />
+                <CurrencyInput  min="0" value={form.shipping_cost || ""} onChange={(val) => setForm({...form, shipping_cost: val})} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-sm" />
               </div>
             </div>
             <div className="flex justify-between text-base font-bold bg-slate-200 p-2 rounded-md">
@@ -454,7 +454,7 @@ export default function Sales() {
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-900">Down Payment / DP (Rp)</label>
-              <CurrencyInput  min="0" max={getTotal()} value={form.down_payment} onChange={(val) => setForm({...form, down_payment: val})} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-sm" />
+              <CurrencyInput  min="0" max={getTotal()} value={form.down_payment || ""} onChange={(val) => setForm({...form, down_payment: val})} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-sm" />
             </div>
           </div>
           <div className="mt-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-3">

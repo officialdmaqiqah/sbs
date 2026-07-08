@@ -186,7 +186,7 @@ export function SupplierPayments() {
 
                     <div className="mb-4">
                       <label className="block text-gray-700 text-sm font-bold mb-2">Jumlah Bayar (Rp)</label>
-                      <CurrencyInput  required max={selectedBill.outstanding_amount} min={1} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" value={formData.amount} onChange={(val) => setFormData({...formData, amount: val})} />
+                      <CurrencyInput  required max={selectedBill.outstanding_amount} min={1} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" value={Number(formData.amount) || ""} onChange={(val) => setFormData({...formData, amount: val.toString()})} />
                     </div>
 
                     <div className="mb-4">

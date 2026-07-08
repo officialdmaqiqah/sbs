@@ -524,7 +524,7 @@ export default function Products() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium leading-6 text-slate-900">Harga Jual (Rp)</label>
-              <CurrencyInput  required value={prodForm.price} onChange={(val) => setProdForm({...prodForm, price: val})} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-sm" />
+              <CurrencyInput  required value={prodForm.price || ""} onChange={(val) => setProdForm({...prodForm, price: val})} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-sm" />
             </div>
             <div>
               <label className="block text-sm font-medium leading-6 text-slate-900">Satuan (Ekor/Kg/Pcs)</label>
@@ -563,7 +563,7 @@ export default function Products() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium leading-6 text-slate-900">Harga Paket (Rp)</label>
-                  <CurrencyInput  required value={pkgForm.price} onChange={(val) => setPkgForm({...pkgForm, price: val})} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-sm" />
+                  <CurrencyInput  required value={pkgForm.price || ""} onChange={(val) => setPkgForm({...pkgForm, price: val})} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-sm" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium leading-6 text-slate-900">Kapasitas Indikatif (Ayam)</label>
