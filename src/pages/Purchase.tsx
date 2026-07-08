@@ -756,7 +756,7 @@ export default function Purchase() {
                   </div>
                   <div className="w-20">
                     <label className="block text-xs font-medium text-slate-700">Qty</label>
-                    <input type="number" data-testid="po-item-qty" min="0.01" step="any" required value={item.qty_ordered} onChange={e => updatePOItem(index, 'qty_ordered', Number(e.target.value))} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-xs" />
+                    <input type="number" data-testid="po-item-qty" min="0.01" step="any" required value={item.qty_ordered !== undefined ? item.qty_ordered : ''} onChange={e => updatePOItem(index, 'qty_ordered', e.target.value === '' ? '' : e.target.value)} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-xs" />
                   </div>
                   <div className="w-32">
                     <label className="block text-xs font-medium text-slate-700">Harga Satuan</label>
