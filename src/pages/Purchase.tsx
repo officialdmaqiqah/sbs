@@ -751,7 +751,7 @@ export default function Purchase() {
                     <label className="block text-xs font-medium text-slate-700">Barang</label>
                     <select required data-testid="po-item-select" value={item.item_id} onChange={e => updatePOItem(index, 'item_id', e.target.value)} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-xs">
                       <option value="">- Pilih Barang -</option>
-                      {items.map(i => <option key={i.id} value={i.id}>{i.name} ({i.unit})</option>)}
+                      {[...items].sort((a,b) => a.name.localeCompare(b.name)).map(i => <option key={i.id} value={i.id}>{i.name} ({i.unit})</option>)}
                     </select>
                   </div>
                   <div className="w-20">
