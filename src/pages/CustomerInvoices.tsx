@@ -6,6 +6,7 @@ import { useCustomerInvoices, useCustomerDP } from '../hooks/useFinance';
 import { db } from '../services/db';
 import { getDataProvider } from '../providers';
 import toast from 'react-hot-toast';
+import { CurrencyInput } from '../components/ui/CurrencyInput';
 
 export default function CustomerInvoices() {
   const { data: invoices, refetch: refetchInvoices } = useCustomerInvoices();
@@ -199,11 +200,11 @@ export default function CustomerInvoices() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label>Total Amount (Rp)</label>
-                  <input className="w-full rounded border px-3 py-2" type="number" min="1" value={formData.total_amount} onChange={e => setFormData({...formData, total_amount: Number(e.target.value)})} required />
+                  <CurrencyInput className="w-full rounded border px-3 py-2"  min="1" value={formData.total_amount} onChange={(val) => setFormData({...formData, total_amount: val})} required />
                 </div>
                 <div className="space-y-1.5">
                   <label>Tax Amount (Included)</label>
-                  <input className="w-full rounded border px-3 py-2" type="number" min="0" value={formData.tax_amount} onChange={e => setFormData({...formData, tax_amount: Number(e.target.value)})} required />
+                  <CurrencyInput className="w-full rounded border px-3 py-2"  min="0" value={formData.tax_amount} onChange={(val) => setFormData({...formData, tax_amount: val})} required />
                 </div>
               </div>
               <div className="flex justify-end gap-3 pt-6 border-t mt-6">
@@ -284,7 +285,7 @@ export default function CustomerInvoices() {
               </div>
               <div className="space-y-1.5">
                 <label>Amount to Apply</label>
-                <input className="w-full rounded border px-3 py-2" type="number" min="1" max={selectedInvoice?.outstanding_amount || 0} value={applyDpAmount} onChange={e => setApplyDpAmount(Number(e.target.value))} required />
+                <CurrencyInput className="w-full rounded border px-3 py-2"  min="1" max={selectedInvoice?.outstanding_amount || 0} value={applyDpAmount} onChange={(val) => setApplyDpAmount(val)} required />
               </div>
               <div className="flex justify-end gap-3 pt-6 border-t mt-6">
                 <button type="button" className="px-4 py-2 border rounded" onClick={() => setIsApplyDpModalOpen(false)}>Cancel</button>

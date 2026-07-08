@@ -10,6 +10,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useCashBankMutations } from '../hooks/useCashBankMutations';
 import CashBankLedger from '../components/finance/CashBankLedger';
 import { useProject } from '../contexts/ProjectContext';
+import { CurrencyInput } from '../components/ui/CurrencyInput';
 
 export default function CashBankList() {
   const { activeProject, availableProjects } = useProject();
@@ -245,7 +246,7 @@ export default function CashBankList() {
       {/* Account Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-lg">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold text-slate-900 mb-6">{selectedAccount ? 'Edit Kas/Bank' : 'Tambah Kas/Bank Baru'}</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -321,7 +322,7 @@ export default function CashBankList() {
               </div>
               <div className="space-y-1.5">
                 <label>Opening Balance Amount (Rp)</label>
-                <input className="w-full rounded border px-3 py-2" type="number" min="0" value={obFormData.amount} onChange={e => setObFormData({...obFormData, amount: Number(e.target.value)})} required />
+                <CurrencyInput className="w-full rounded border px-3 py-2"  min="0" value={obFormData.amount} onChange={(val) => setObFormData({...obFormData, amount: val})} required />
               </div>
               <div className="flex justify-end gap-3 pt-6">
                 <button className="px-4 py-2 border rounded" type="button" onClick={() => setIsOpeningBalanceModalOpen(false)}>Cancel</button>

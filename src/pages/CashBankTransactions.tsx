@@ -5,6 +5,7 @@ import { useCashBankAccounts } from '../hooks/useFinance';
 import { useProjects } from '../hooks/useProjects';
 import { useProject } from '../contexts/ProjectContext';
 import toast from 'react-hot-toast';
+import { CurrencyInput } from '../components/ui/CurrencyInput';
 
 export default function CashBankTransactions() {
   const { data: mutations, createMutation } = useCashBankMutations();
@@ -189,7 +190,7 @@ export default function CashBankTransactions() {
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-slate-700">Jumlah (Rp)</label>
-                  <input className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500" type="number" min="1" value={formData.amount} onChange={e => setFormData({...formData, amount: Number(e.target.value)})} required />
+                  <CurrencyInput className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500"  min="1" value={formData.amount} onChange={(val) => setFormData({...formData, amount: val})} required />
                 </div>
               </div>
 

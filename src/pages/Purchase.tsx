@@ -9,6 +9,7 @@ import Badge from '../components/Badge';
 import { Plus, Edit, Search, PackagePlus, AlertCircle, Trash2, RotateCcw, FileText } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { confirmAlert } from '../components/ui/ConfirmAlert';
+import { CurrencyInput } from '../components/ui/CurrencyInput';
 
 const SUPPLIER_CATEGORIES: SupplierCategory[] = ['Ayam', 'Bahan Kandang', 'Bahan Pakan', 'Vitamin / Obat', 'Peralatan', 'Umum'];
 
@@ -751,11 +752,11 @@ export default function Purchase() {
                   </div>
                   <div className="w-32">
                     <label className="block text-xs font-medium text-slate-700">Harga Satuan</label>
-                    <input type="number" data-testid="po-item-price" min="0" required value={item.unit_price} onChange={e => updatePOItem(index, 'unit_price', Number(e.target.value))} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-xs" />
+                    <CurrencyInput  data-testid="po-item-price" min="0" required value={item.unit_price} onChange={(val) => updatePOItem(index, 'unit_price', val)} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-xs" />
                   </div>
                   <div className="w-24">
                     <label className="block text-xs font-medium text-slate-700">Diskon</label>
-                    <input type="number" min="0" value={item.discount} onChange={e => updatePOItem(index, 'discount', Number(e.target.value))} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-xs" />
+                    <CurrencyInput  min="0" value={item.discount} onChange={(val) => updatePOItem(index, 'discount', val)} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-xs" />
                   </div>
                   <div className="w-32">
                     <label className="block text-xs font-medium text-slate-700">Subtotal</label>
@@ -777,7 +778,7 @@ export default function Purchase() {
           <div className="mt-4 border-t border-slate-200 pt-4 flex flex-col items-end gap-2">
             <div className="flex items-center gap-4 w-64">
               <span className="text-sm text-slate-500 flex-1">Ongkos Kirim:</span>
-              <input type="number" value={poForm.shipping_cost} onChange={e => setPoForm({...poForm, shipping_cost: Number(e.target.value)})} className="w-32 rounded-md border-0 py-1 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-sm text-right" />
+              <CurrencyInput  value={poForm.shipping_cost} onChange={(val) => setPoForm({...poForm, shipping_cost: val})} className="w-32 rounded-md border-0 py-1 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-sm text-right" />
             </div>
             <div className="flex items-center gap-4 w-64 pt-2 border-t border-slate-200">
               <span className="text-sm font-bold text-slate-900 flex-1">Total PO:</span>

@@ -9,6 +9,7 @@ import { useProject, type Project } from '../contexts/ProjectContext';
 import { useCashBankMutations } from '../hooks/useCashBankMutations';
 import { useCashBankAccounts } from '../hooks/useFinance';
 import toast from 'react-hot-toast';
+import { CurrencyInput } from '../components/ui/CurrencyInput';
 
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
@@ -507,7 +508,7 @@ function ProjectCapital({ projectId, investments, reload, accounts, teamMembers 
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700">Nominal Modal (Rp)</label>
-            <input required type="number" min="0" className="mt-1 block w-full rounded-md border-slate-300 py-2 px-3 text-sm border focus:ring-brand-500 focus:border-brand-500" value={amount} onChange={e => setAmount(e.target.value)} />
+            <CurrencyInput required  min="0" className="mt-1 block w-full rounded-md border-slate-300 py-2 px-3 text-sm border focus:ring-brand-500 focus:border-brand-500" value={amount} onChange={(val) => setAmount(val)} />
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700">Metode Setor</label>

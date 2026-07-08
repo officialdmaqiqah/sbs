@@ -8,6 +8,7 @@ import { useItems } from '../hooks/useItems';
 import Modal from '../components/Modal';
 import Badge from '../components/Badge';
 import toast from 'react-hot-toast';
+import { CurrencyInput } from '../components/ui/CurrencyInput';
 
 export default function SalesOrders() {
   const navigate = useNavigate();
@@ -236,7 +237,7 @@ export default function SalesOrders() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700">Harga Satuan</label>
-                <input type="number" required value={unitPrice} onChange={e => setUnitPrice(Number(e.target.value))} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" />
+                <CurrencyInput  required value={unitPrice} onChange={(val) => setUnitPrice(val)} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" />
               </div>
             </div>
           </div>

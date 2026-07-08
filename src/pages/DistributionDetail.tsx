@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase';
 import Badge from '../components/Badge';
 import Modal from '../components/Modal';
 import toast from 'react-hot-toast';
+import { CurrencyInput } from '../components/ui/CurrencyInput';
 
 export default function DistributionDetail() {
   const { id } = useParams();
@@ -243,7 +244,7 @@ export default function DistributionDetail() {
 
           <div>
             <label className="block text-sm font-medium text-slate-700">Nominal (Rp)</label>
-            <input type="number" required value={amount} onChange={e => setAmount(Number(e.target.value))} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" />
+            <CurrencyInput  required value={amount} onChange={(val) => setAmount(val)} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" />
           </div>
 
           <div>

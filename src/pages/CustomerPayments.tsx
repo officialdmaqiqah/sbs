@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from 'react';
 import type { CustomerPayment } from '../types';
 import { useCustomerPayments, useCashBankAccounts, useCustomerInvoices } from '../hooks/useFinance';
 import { getDataProvider } from '../providers';
+import { CurrencyInput } from '../components/ui/CurrencyInput';
 
 export default function CustomerPayments() {
   const { data: payments, refetch: refetchPayments } = useCustomerPayments();
@@ -193,7 +194,7 @@ export default function CustomerPayments() {
                   </div>
                   <div className="space-y-1.5">
                     <label>Amount Received (Rp)</label>
-                    <input className="w-full rounded border px-3 py-2" type="number" min="1" value={formData.amount} onChange={e => setFormData({...formData, amount: Number(e.target.value)})} required />
+                    <CurrencyInput className="w-full rounded border px-3 py-2"  min="1" value={formData.amount} onChange={(val) => setFormData({...formData, amount: val})} required />
                   </div>
                 </div>
 
@@ -224,14 +225,14 @@ export default function CustomerPayments() {
                               <td className="px-4 py-2 text-sm text-slate-500">{alloc.due_date}</td>
                               <td className="px-4 py-2 text-sm text-right text-red-600">{formatter.format(alloc.out)}</td>
                               <td className="px-4 py-2 text-sm">
-                                <input className="w-full rounded border px-3 py-2 text-right w-full"
-                                  type="number" 
+                                <CurrencyInput className="w-full rounded border px-3 py-2 text-right w-full"
+                                   
                                   min="0" 
                                   max={alloc.out}
                                   value={alloc.amount} 
-                                  onChange={e => {
+                                  onChange={(val) => {
                                     const newInputs = [...allocationInputs];
-                                    newInputs[idx].amount = Number(e.target.value);
+                                    newInputs[idx].amount = val;
                                     setAllocationInputs(newInputs);
                                   }} 
                                 />

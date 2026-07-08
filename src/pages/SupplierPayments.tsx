@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { usePayableSupplierBills, useSupplierPayments, useCreateSupplierPayment } from '../hooks/useSupplierPayments';
 import { useAuth } from '../contexts/AuthContext';
 import { useCashBankAccounts } from '../hooks/useFinance';
+import { CurrencyInput } from '../components/ui/CurrencyInput';
 
 export function SupplierPayments() {
   const { profile, user } = useAuth();
@@ -185,7 +186,7 @@ export function SupplierPayments() {
 
                     <div className="mb-4">
                       <label className="block text-gray-700 text-sm font-bold mb-2">Jumlah Bayar (Rp)</label>
-                      <input type="number" required max={selectedBill.outstanding_amount} min={1} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} />
+                      <CurrencyInput  required max={selectedBill.outstanding_amount} min={1} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" value={formData.amount} onChange={(val) => setFormData({...formData, amount: val})} />
                     </div>
 
                     <div className="mb-4">

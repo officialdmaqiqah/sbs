@@ -2,6 +2,7 @@
 import toast from 'react-hot-toast';
 import { arApService } from '../services/arApService';
 import { useCustomerRefunds, useCashBankAccounts } from '../hooks/useFinance';
+import { CurrencyInput } from '../components/ui/CurrencyInput';
 
 export default function CustomerRefunds() {
   const { data: refunds, refetch: refetchRefunds } = useCustomerRefunds();
@@ -111,7 +112,7 @@ export default function CustomerRefunds() {
                 </div>
                 <div className="space-y-1.5">
                   <label>Amount (Rp)</label>
-                  <input className="w-full rounded border px-3 py-2" type="number" min="1" value={formData.amount} onChange={e => setFormData({...formData, amount: Number(e.target.value)})} required />
+                  <CurrencyInput className="w-full rounded border px-3 py-2"  min="1" value={formData.amount} onChange={(val) => setFormData({...formData, amount: val})} required />
                 </div>
               </div>
               <div className="space-y-1.5">

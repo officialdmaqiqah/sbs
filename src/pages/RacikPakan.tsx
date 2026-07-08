@@ -7,6 +7,7 @@ import type { FeedRecipe, FeedRecipeItem, FeedProductionOrder, FeedProductionOrd
 import Modal from '../components/Modal';
 import Badge from '../components/Badge';
 import { Plus, Edit, Search, AlertTriangle, RotateCcw, Save, Beaker, PackageCheck, Copy } from 'lucide-react';
+import { CurrencyInput } from '../components/ui/CurrencyInput';
 
 export default function RacikPakan() {
   const [activeTab, setActiveTab] = useState<'wo' | 'master' | 'formula'>('wo');
@@ -706,19 +707,19 @@ export default function RacikPakan() {
           <div className="grid grid-cols-2 gap-3 border-t pt-4">
             <div>
               <label className="block text-xs font-medium text-slate-700">Biaya Tenaga Kerja</label>
-              <input type="number" min="0" value={processForm.labor_cost} onChange={e => setProcessForm({...processForm, labor_cost: Number(e.target.value)})} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-sm" />
+              <CurrencyInput  min="0" value={processForm.labor_cost} onChange={(val) => setProcessForm({...processForm, labor_cost: val})} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-sm" />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-700">Listrik / Mesin</label>
-              <input type="number" min="0" value={processForm.machine_electricity_cost} onChange={e => setProcessForm({...processForm, machine_electricity_cost: Number(e.target.value)})} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-sm" />
+              <CurrencyInput  min="0" value={processForm.machine_electricity_cost} onChange={(val) => setProcessForm({...processForm, machine_electricity_cost: val})} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-sm" />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-700">Vitamin Tambahan</label>
-              <input type="number" min="0" value={processForm.additional_vitamin_cost} onChange={e => setProcessForm({...processForm, additional_vitamin_cost: Number(e.target.value)})} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-sm" />
+              <CurrencyInput  min="0" value={processForm.additional_vitamin_cost} onChange={(val) => setProcessForm({...processForm, additional_vitamin_cost: val})} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-sm" />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-700">Overhead & Lain</label>
-              <input type="number" min="0" value={processForm.overhead_cost + processForm.other_cost} onChange={e => setProcessForm({...processForm, overhead_cost: Number(e.target.value), other_cost: 0})} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-sm" />
+              <CurrencyInput  min="0" value={processForm.overhead_cost + processForm.other_cost} onChange={(val) => setProcessForm({...processForm, overhead_cost: val, other_cost: 0})} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-sm" />
             </div>
           </div>
 

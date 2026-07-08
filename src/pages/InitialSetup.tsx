@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { db } from '../services/db';
 import { AlertTriangle, CheckCircle2, Rocket, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { CurrencyInput } from '../components/ui/CurrencyInput';
 
 export default function InitialSetup() {
   const [success, setSuccess] = useState('');
@@ -129,7 +130,7 @@ export default function InitialSetup() {
           <form onSubmit={handleInputSaldo} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Total Kas & Bank (Rp)</label>
-              <input type="number" name="nominal" className="w-full border-slate-300 rounded-lg" placeholder="Contoh: 15000000" required />
+              <CurrencyInput  name="nominal" className="w-full border-slate-300 rounded-lg" placeholder="Contoh: 15000000" required />
             </div>
             <button type="submit" className="w-full bg-slate-900 text-white px-4 py-2 rounded-lg font-medium hover:bg-slate-800 transition">
               Simpan Saldo Awal
