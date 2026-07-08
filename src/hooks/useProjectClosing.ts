@@ -115,27 +115,32 @@ export function useProjectClosing(projectId?: string) {
 
       const grossProfit = totalSales - totalCosts;
 
+      const { data: investments } = await supabase
+        .from('project_investments')
+        .select('investor_id, amount, investment_type, expected_profit, investors(name)')
+        .eq('project_id', projectId)
+        .eq('status', 'Confirmed');
+
+      const totalMurabahahProfit = investments?.filter(i => i.investment_type === 'Murabahah').reduce((sum, inv) => sum + Number(inv.expected_profit || 0), 0) || 0;
+      
+      const adjustedGrossProfit = grossProfit - totalMurabahahProfit;
+
       // 3. Pool Calculation
-      const companyShare = grossProfit * 0.10;
-      const remainingProfit = grossProfit * 0.90;
+      const companyShare = adjustedGrossProfit * 0.10;
+      const remainingProfit = adjustedGrossProfit * 0.90;
       
       const workerPool = remainingProfit * 0.45;
       const investorPool = remainingProfit * 0.45;
       const csrPool = remainingProfit * 0.10;
 
-      // 4. Fetch Members & Investors
+      // 4. Fetch Members
       const { data: members } = await supabase
         .from('project_members')
         .select('user_id, role, member_name, profiles(full_name)')
         .eq('project_id', projectId);
 
-      const { data: investments } = await supabase
-        .from('project_investments')
-        .select('investor_id, amount, investors(name)')
-        .eq('project_id', projectId)
-        .eq('status', 'Confirmed');
-
       const totalCapital = investments?.reduce((sum, inv) => sum + Number(inv.amount || 0), 0) || 0;
+      const totalMudharabahCapital = investments?.filter(i => i.investment_type !== 'Murabahah').reduce((sum, inv) => sum + Number(inv.amount || 0), 0) || 0;
 
       const distributions: any[] = [];
 
@@ -192,25 +197,37 @@ export function useProjectClosing(projectId?: string) {
       }
 
       // Investors
-      if (totalCapital > 0 && investments) {
+      if (investments) {
         investments.forEach(inv => {
           const capAmount = Number(inv.amount);
-          const capPct = (capAmount / totalCapital) * 100;
-          const share = investorPool * (capAmount / totalCapital);
+          const isMurabahah = inv.investment_type === 'Murabahah';
+          
+          let capPct = 0;
+          let share = 0;
+          let roleLabel = 'Investor (Bagi Hasil)';
+
+          if (isMurabahah) {
+            share = Number(inv.expected_profit || 0);
+            roleLabel = 'Peminjam (Murabahah)';
+          } else {
+            if (totalMudharabahCapital > 0) {
+              capPct = (capAmount / totalMudharabahCapital) * 100;
+              share = investorPool * (capAmount / totalMudharabahCapital);
+            }
+          }
           
           distributions.push({
             recipient_name: (inv as any).investors?.name || 'Investor',
-            recipient_role: 'Investor Internal',
-            capital_amount: capAmount,
-            capital_percentage: capPct,
+            recipient_role: roleLabel,
+            capital_return: capAmount,
+            capital_percentage: isMurabahah ? null : capPct,
             investor_share: share,
-            total_share: share
+            total_share: capAmount + share
           });
         });
-      } else {
-        // No investors? dump pool to company
-        distributions[0].total_share += investorPool;
       }
+
+      const totalDistributions = distributions.reduce((sum, d) => sum + d.total_share, 0);
 
       return {
         totalSales,

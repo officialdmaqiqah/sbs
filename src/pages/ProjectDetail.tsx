@@ -326,6 +326,8 @@ function ProjectCapital({ projectId, investments, reload, accounts, teamMembers 
   const [editingInvId, setEditingInvId] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [amount, setAmount] = useState<number | string>('');
+  const [investmentType, setInvestmentType] = useState('Mudharabah');
+  const [expectedProfit, setExpectedProfit] = useState<number | string>('');
   const [paymentMethod, setPaymentMethod] = useState('Kas Tunai');
   const [cashBankId, setCashBankId] = useState('');
   const [notes, setNotes] = useState('');
@@ -347,6 +349,8 @@ function ProjectCapital({ projectId, investments, reload, accounts, teamMembers 
       if (editingInvId) {
         await supabase.from('project_investments').update({
           amount: Number(amount),
+          investment_type: investmentType,
+          expected_profit: investmentType === 'Murabahah' ? Number(expectedProfit) : 0,
           payment_method: paymentMethod,
           cash_bank_id: cashBankId || null,
           notes: notes,
@@ -376,6 +380,8 @@ function ProjectCapital({ projectId, investments, reload, accounts, teamMembers 
           project_id: projectId,
           investor_id: invId,
           amount: Number(amount),
+          investment_type: investmentType,
+          expected_profit: investmentType === 'Murabahah' ? Number(expectedProfit) : 0,
           payment_method: paymentMethod,
           cash_bank_id: cashBankId || null,
           notes: notes,
@@ -386,6 +392,8 @@ function ProjectCapital({ projectId, investments, reload, accounts, teamMembers 
       setIsOpen(false);
       setName('');
       setAmount('');
+      setExpectedProfit('');
+      setInvestmentType('Mudharabah');
       setCashBankId('');
       reload();
     } catch (err) {
@@ -497,6 +505,9 @@ function ProjectCapital({ projectId, investments, reload, accounts, teamMembers 
           setEditingInvId(null);
           setName('');
           setAmount('');
+          setExpectedProfit('');
+          setInvestmentType('Mudharabah');
+          setPaymentMethod('Kas Tunai');
           setCashBankId('');
           setNotes('');
           setIsOpen(true);
@@ -510,6 +521,7 @@ function ProjectCapital({ projectId, investments, reload, accounts, teamMembers 
           <tr>
             <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Investor</th>
             <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Nominal</th>
+            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Tipe Akad</th>
             <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Metode</th>
             <th className="px-4 py-3 text-right text-sm font-semibold text-slate-900">Status Kas</th>
           </tr>
@@ -521,6 +533,14 @@ function ProjectCapital({ projectId, investments, reload, accounts, teamMembers 
             <tr key={inv.id} className="hover:bg-slate-50">
               <td className="px-4 py-3 text-sm text-slate-900 font-medium">{inv.investors?.name}</td>
               <td className="px-4 py-3 text-sm text-slate-900">Rp {Number(inv.amount).toLocaleString('id-ID')}</td>
+              <td className="px-4 py-3 text-sm text-slate-900">
+                {inv.investment_type === 'Murabahah' ? (
+                  <div>
+                    <span className="font-semibold text-brand-700">Murabahah</span>
+                    <div className="text-xs text-slate-500">Margin: Rp {Number(inv.expected_profit || 0).toLocaleString('id-ID')}</div>
+                  </div>
+                ) : 'Bagi Hasil (Syirkah)'}
+              </td>
               <td className="px-4 py-3 text-sm text-slate-500">{inv.payment_method}</td>
               <td className="px-4 py-3 text-right">
                 {inv.is_synced_to_cash ? (
@@ -537,6 +557,8 @@ function ProjectCapital({ projectId, investments, reload, accounts, teamMembers 
                       setEditingInvId(inv.id);
                       setName(inv.investors?.name || '');
                       setAmount(inv.amount);
+                      setInvestmentType(inv.investment_type || 'Mudharabah');
+                      setExpectedProfit(inv.expected_profit || '');
                       setPaymentMethod(inv.payment_method);
                       setCashBankId(inv.cash_bank_id || '');
                       setNotes(inv.notes || '');
@@ -579,6 +601,20 @@ function ProjectCapital({ projectId, investments, reload, accounts, teamMembers 
             <label className="block text-sm font-medium text-slate-700">Nominal Modal (Rp)</label>
             <CurrencyInput required  min="0" className="mt-1 block w-full rounded-md border-slate-300 py-2 px-3 text-sm border focus:ring-brand-500 focus:border-brand-500" value={Number(amount) || ""} onChange={(val) => setAmount(val.toString())} />
           </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700">Tipe Akad / Pendanaan</label>
+            <select className="mt-1 block w-full rounded-md border-slate-300 py-2 px-3 text-sm border focus:ring-brand-500 focus:border-brand-500" value={investmentType} onChange={e => setInvestmentType(e.target.value)}>
+              <option value="Mudharabah">Bagi Hasil (Syirkah / Mudharabah)</option>
+              <option value="Murabahah">Pinjaman / Fixed Return (Murabahah)</option>
+            </select>
+          </div>
+          {investmentType === 'Murabahah' && (
+            <div>
+              <label className="block text-sm font-medium text-slate-700">Keuntungan yang Disepakati (Rp)</label>
+              <CurrencyInput required min="0" className="mt-1 block w-full rounded-md border-slate-300 py-2 px-3 text-sm border focus:ring-brand-500 focus:border-brand-500" value={Number(expectedProfit) || ""} onChange={(val) => setExpectedProfit(val.toString())} />
+              <p className="text-xs text-slate-500 mt-1">Nominal keuntungan pasti yang akan diberikan kepada pemodal ini di luar pengembalian modal awal.</p>
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium text-slate-700">Metode Setor</label>
             <select className="mt-1 block w-full rounded-md border-slate-300 py-2 px-3 text-sm border focus:ring-brand-500 focus:border-brand-500" value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)}>

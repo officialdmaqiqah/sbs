@@ -31,6 +31,8 @@ export interface ProjectInvestment {
   amount: number;
   percentage: number;
   status: InvestmentStatus;
+  investment_type?: 'Mudharabah' | 'Murabahah';
+  expected_profit?: number;
   created_at: string;
 }
 
