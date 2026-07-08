@@ -814,7 +814,7 @@ export default function Inventory() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 bg-white">
-                {items?.filter(i => ['Bahan Kandang', 'Bahan Pakan'].includes(i.category)).map(item => {
+                {items?.filter(i => !['Ayam', 'Telur'].includes(i.category)).map(item => {
                   const stock = getCurrentStock(item.id);
                   return (
                   <tr key={item.id}>
@@ -822,15 +822,20 @@ export default function Inventory() {
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500"><Badge variant="default">{getCategoryName(item.category)}</Badge></td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-900 font-bold text-center">{stock} <span className="font-normal text-slate-500">{item.unit}</span></td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm font-medium text-right space-x-2">
-                      <button onClick={() => openMutasiFor(item.id, 'OUT', 'Dipakai Produksi Kandang', 'Bahan Dipakai Produksi Kandang')} className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded font-medium border border-slate-300">
-                        Pakai (Kandang)
-                      </button>
-                      <button onClick={() => openMutasiFor(item.id, 'OUT', 'Dipakai Racik Pakan', 'Bahan Dipakai Racik Pakan')} className="text-xs bg-brand-50 hover:bg-brand-100 text-brand-700 px-3 py-1.5 rounded font-medium border border-brand-200">
-                        Pakai (Pakan)
+                      <button onClick={() => openMutasiFor(item.id, 'OUT', 'Pemakaian Internal', `Pemakaian internal: ${item.name}`)} className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded font-medium border border-slate-300">
+                        Pakai Material
                       </button>
                     </td>
                   </tr>
-                )})}
+                  )
+                })}
+                {items?.filter(i => !['Ayam', 'Telur'].includes(i.category)).length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="text-center py-8 text-slate-500">
+                      Tidak ada barang material.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
