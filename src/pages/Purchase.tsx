@@ -861,9 +861,9 @@ export default function Purchase() {
                           data-testid="receive-qty-input"
                           min="0" 
                           max={remaining}
-                          value={item.qty_to_receive} 
+                          value={item.qty_to_receive === 0 ? '' : item.qty_to_receive} 
                           onChange={e => {
-                            const val = Number(e.target.value);
+                            const val = e.target.value === '' ? 0 : Number(e.target.value);
                             const newItems = [...receiveItems];
                             newItems[index].qty_to_receive = val;
                             setReceiveItems(newItems);
