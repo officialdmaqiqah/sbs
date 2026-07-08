@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { arApService } from '../services/arApService';
 import Modal from '../components/Modal';
 import Badge from '../components/Badge';
-import { Plus, Edit, Search, PackagePlus, AlertCircle, Trash2, RotateCcw, FileText, X } from 'lucide-react';
+import { Plus, Edit, Search, PackagePlus, Trash2, RotateCcw, FileText, X } from 'lucide-react';
 import { useTableSort } from '../hooks/useTableSort';
 import SortIcon from '../components/SortIcon';
 import toast from 'react-hot-toast';
