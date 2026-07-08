@@ -433,7 +433,8 @@ export default function Purchase() {
   const { sortedData: sortedSuppliers, requestSort: sortSupplier, sortConfig: supplierSortConfig } = useTableSort(filteredSuppliers);
   const { sortedData: sortedPOs, requestSort: sortPO, sortConfig: poSortConfig } = useTableSort(filteredPOs, {
     supplier_id: (po) => getSupplierName(po.supplier_id),
-    project_id: (po) => getProjectName(po.project_id)
+    project_id: (po) => getProjectName(po.project_id),
+    date: (po) => new Date(po.date || (po as any).po_date).getTime()
   });
 
   const getPOBadgeColor = (status: string) => {
