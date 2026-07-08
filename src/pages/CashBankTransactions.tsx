@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 import { CurrencyInput } from '../components/ui/CurrencyInput';
 
 export default function CashBankTransactions() {
-  const { data: mutations, createMutation } = useCashBankMutations();
+  const { data: mutations, createMutation, accountBalances } = useCashBankMutations();
   const { data: accounts } = useCashBankAccounts();
   const { data: projects } = useProjects();
   const { activeProject } = useProject();
@@ -201,7 +201,9 @@ export default function CashBankTransactions() {
                     <select className="w-full h-10 rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500" value={formData.from_cash_bank_id} onChange={e => setFormData({...formData, from_cash_bank_id: e.target.value})} required>
                       <option value="">Pilih Kas/Bank Sumber</option>
                       {activeAccounts.map(a => (
-                        <option key={a.id} value={a.id}>{a.account_name}</option>
+                        <option key={a.id} value={a.id}>
+                          {a.account_name} (Rp {(accountBalances[a.id] || 0).toLocaleString('id-ID')})
+                        </option>
                       ))}
                     </select>
                   </div>
@@ -213,7 +215,9 @@ export default function CashBankTransactions() {
                     <select className="w-full h-10 rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500" value={formData.to_cash_bank_id} onChange={e => setFormData({...formData, to_cash_bank_id: e.target.value})} required>
                       <option value="">Pilih Kas/Bank Tujuan</option>
                       {activeAccounts.filter(a => a.id !== formData.from_cash_bank_id).map(a => (
-                        <option key={a.id} value={a.id}>{a.account_name}</option>
+                        <option key={a.id} value={a.id}>
+                          {a.account_name} (Rp {(accountBalances[a.id] || 0).toLocaleString('id-ID')})
+                        </option>
                       ))}
                     </select>
                   </div>
