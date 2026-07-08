@@ -605,7 +605,7 @@ export default function Purchase() {
               {filteredPOs.map((po) => (
                 <tr key={po.id}>
                   <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-slate-900">{po.po_number}</td>
-                  <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500">{new Date(po.date).toLocaleDateString('id-ID')}</td>
+                  <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500">{new Date(po.date || (po as any).po_date).toLocaleDateString('id-ID')}</td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-900">{getSupplierName(po.supplier_id)}</td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500">{getProjectName(po.project_id)}</td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-900 text-right font-medium">{po.total_amount.toLocaleString('id-ID')}</td>
