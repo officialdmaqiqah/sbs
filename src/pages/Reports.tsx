@@ -143,13 +143,14 @@ export default function Reports() {
       // 3. ARUS KAS (CASH FLOW) - Source of truth: cash_bank_mutations
       let kasMasuk = cashMutations.filter((m: any) => m.mutation_type === 'IN').reduce((sum: number, m: any) => sum + m.amount, 0);
       let kasKeluar = cashMutations.filter((m: any) => m.mutation_type === 'OUT').reduce((sum: number, m: any) => sum + m.amount, 0);
+      const modalInvestasi = cashMutations.filter((m: any) => m.source_module === 'PROJECT_CAPITAL' && m.mutation_type === 'IN').reduce((sum: number, m: any) => sum + m.amount, 0);
 
       const saldoAwal = kasBalance - kasMasuk + kasKeluar; 
 
       setReportData({
-        arusKas: { masuk: kasMasuk, keluar: kasKeluar, saldoAwal: Math.max(saldoAwal, 0), saldoAkhir: kasBalance },
+        arusKas: { masuk: kasMasuk, keluar: kasKeluar, saldoAwal: Math.max(saldoAwal, 0), saldoAkhir: kasBalance, modalInvestasi },
         labaRugi: { pendapatan, hpp, kotor: labaKotor, biaya, bersih: labaBersih },
-        neraca: { aset: totalAset, kas: kasBalance, piutang: piutangBalance, persediaan: persediaanBalance, hutang: hutangBalance, ekuitas: ekuitasBalance }
+        neraca: { aset: totalAset, kas: kasBalance, piutang: piutangBalance, persediaan: persediaanBalance, hutang: hutangBalance, ekuitas: ekuitasBalance, modalInvestasi }
       });
     } catch (e) {
       console.error("Failed to load report data", e);
@@ -259,6 +260,14 @@ export default function Reports() {
                     <td className="py-4 pr-6 text-sm text-emerald-600 text-right">+ Rp {reportData.arusKas.masuk.toLocaleString('id-ID')}</td>
                   </tr>
                   <tr className="bg-white">
+                    <td className="py-2 pl-12 text-xs text-slate-500">└ Pemasukan Modal / Pinjaman</td>
+                    <td className="py-2 pr-6 text-xs text-slate-500 text-right">Rp {reportData.arusKas.modalInvestasi.toLocaleString('id-ID')}</td>
+                  </tr>
+                  <tr className="bg-white">
+                    <td className="py-2 pl-12 text-xs text-slate-500">└ Pemasukan Operasional</td>
+                    <td className="py-2 pr-6 text-xs text-slate-500 text-right">Rp {(reportData.arusKas.masuk - reportData.arusKas.modalInvestasi).toLocaleString('id-ID')}</td>
+                  </tr>
+                  <tr className="bg-white">
                     <td className="py-4 pl-6 text-sm text-slate-600">Total Pengeluaran</td>
                     <td className="py-4 pr-6 text-sm text-red-600 text-right">- Rp {reportData.arusKas.keluar.toLocaleString('id-ID')}</td>
                   </tr>
@@ -332,8 +341,12 @@ export default function Reports() {
                         <td className="py-3 pr-4 text-sm text-slate-900 text-right"></td>
                       </tr>
                       <tr className="bg-white">
+                        <td className="py-3 pl-4 text-sm text-slate-700 pl-8">Modal Investor / Pinjaman Masuk</td>
+                        <td className="py-3 pr-4 text-sm text-slate-900 text-right">Rp {reportData.neraca.modalInvestasi.toLocaleString('id-ID')}</td>
+                      </tr>
+                      <tr className="bg-white">
                         <td className="py-3 pl-4 text-sm text-slate-700 pl-8">Modal Netto / Laba Ditahan</td>
-                        <td className="py-3 pr-4 text-sm text-slate-900 text-right">Rp {reportData.neraca.ekuitas.toLocaleString('id-ID')}</td>
+                        <td className="py-3 pr-4 text-sm text-slate-900 text-right">Rp {(reportData.neraca.ekuitas - reportData.neraca.modalInvestasi).toLocaleString('id-ID')}</td>
                       </tr>
                     </tbody>
                   </table>
