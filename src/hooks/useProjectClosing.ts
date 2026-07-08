@@ -227,7 +227,6 @@ export function useProjectClosing(projectId?: string) {
         });
       }
 
-      const totalDistributions = distributions.reduce((sum, d) => sum + d.total_share, 0);
 
       return {
         totalSales,
