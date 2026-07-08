@@ -20,7 +20,6 @@ export default function ProjectDetail() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'team' | 'capital'>('dashboard');
 
   const { activeProject, setActiveProject } = useProject();
-  const { profile } = useAuth();
 
   // Data
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
@@ -322,6 +321,7 @@ function ProjectTeam({ projectId, teamMembers, reload }: { projectId: string, te
 }
 
 function ProjectCapital({ projectId, investments, reload, accounts, teamMembers }: { projectId: string, investments: any[], reload: () => void, accounts: any[], teamMembers: any[] }) {
+  const { profile } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [editingInvId, setEditingInvId] = useState<string | null>(null);
   const [name, setName] = useState('');
