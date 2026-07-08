@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { arApService } from '../services/arApService';
 import Modal from '../components/Modal';
 import Badge from '../components/Badge';
-import { Plus, Edit, Search, PackagePlus, AlertCircle, Trash2, RotateCcw, FileText } from 'lucide-react';
+import { Plus, Edit, Search, PackagePlus, AlertCircle, Trash2, RotateCcw, FileText, X } from 'lucide-react';
 import { useTableSort } from '../hooks/useTableSort';
 import SortIcon from '../components/SortIcon';
 import toast from 'react-hot-toast';
@@ -711,7 +711,7 @@ export default function Purchase() {
 
       {/* PO Modal */}
       <Modal isOpen={isPOModalOpen} onClose={() => setIsPOModalOpen(false)} title={isPOViewOnly ? "Detail Purchase Order" : (editingPOId ? "Edit Purchase Order" : "Buat Purchase Order Baru")} maxWidth="max-w-4xl">
-        <form onSubmit={handleSavePO} className="space-y-4 max-h-[80vh] overflow-y-auto px-1 pb-4">
+        <form onSubmit={handleSavePO} className="space-y-4 max-h-[75vh] overflow-y-auto px-4 pb-4 custom-scrollbar">
           <fieldset disabled={isPOViewOnly} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -774,7 +774,7 @@ export default function Purchase() {
                   </div>
                   {!isPOViewOnly && (
                     <button type="button" onClick={() => removePOItemRow(index)} className="absolute -top-2 -right-2 bg-red-100 text-red-600 rounded-full p-1 hover:bg-red-200">
-                      <AlertCircle className="w-4 h-4" />
+                      <X className="w-4 h-4" />
                     </button>
                   )}
                 </div>
