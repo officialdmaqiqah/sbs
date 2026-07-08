@@ -159,7 +159,7 @@ export function useProjectClosing(projectId?: string) {
       
       if (ceo) {
         distributions.push({
-          recipient_name: (ceo as any).profiles?.full_name || 'CEO',
+          recipient_name: (ceo as any).member_name || (ceo as any).profiles?.full_name || 'CEO',
           recipient_role: 'CEO',
           worker_share: workerPool * 0.30,
           total_share: workerPool * 0.30
@@ -173,7 +173,7 @@ export function useProjectClosing(projectId?: string) {
         
         otherWorkers.forEach(w => {
           distributions.push({
-            recipient_name: (w as any).profiles?.full_name || 'Team Member',
+            recipient_name: (w as any).member_name || (w as any).profiles?.full_name || 'Team Member',
             recipient_role: 'Worker',
             worker_share: sharePerWorker,
             total_share: sharePerWorker
