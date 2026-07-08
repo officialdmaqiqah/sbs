@@ -3,7 +3,7 @@ import { db } from '../services/db';
 import { stockOpnameService } from '../services/stockOpname';
 import { costingService } from '../services/costing';
 import type { StockOpname, StockOpnameItem } from '../types';
-import { ListFilter, ArrowDownLeft, ArrowUpRight, Plus, AlertTriangle, FileText, PackageCheck, RotateCcw, Box, Trash2, Edit2 } from 'lucide-react';
+import { ListFilter, ArrowDownLeft, ArrowUpRight, Plus, AlertTriangle, FileText, PackageCheck, RotateCcw, Box, Trash2, Edit2, ArrowDown, ArrowUp } from 'lucide-react';
 import Badge from '../components/Badge';
 import Modal from '../components/Modal';
 import { Navigate } from 'react-router-dom';
@@ -48,6 +48,7 @@ export default function Inventory() {
   // Legacy Data
   const [opnames, setOpnames] = useState<StockOpname[]>([]);
   const [opnameItems, setOpnameItems] = useState<StockOpnameItem[]>([]);
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
 
   // Roles (Mock)
   const mockRole = ['CEO_ADMIN'].includes(profile?.role || '') ? 'Admin' : ['FINANCE'].includes(profile?.role || '') ? 'Reviewer' : 'Operator';
@@ -523,19 +524,57 @@ export default function Inventory() {
           <table className="min-w-full divide-y divide-slate-200">
             <thead className="bg-slate-50">
               <tr>
-                <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-slate-900">Barang</th>
-                <th className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">Kategori</th>
-                <th className="px-3 py-3.5 text-center text-sm font-semibold text-slate-900">Stok Aktual</th>
-                <th className="px-3 py-3.5 text-right text-sm font-semibold text-slate-900">Avg Cost</th>
-                <th className="px-3 py-3.5 text-right text-sm font-semibold text-slate-900">Total Value</th>
+                <th onClick={() => requestSort('name')} className="cursor-pointer py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-slate-900 hover:bg-slate-100">Barang {getSortIcon('name')}</th>
+                <th onClick={() => requestSort('category')} className="cursor-pointer px-3 py-3.5 text-left text-sm font-semibold text-slate-900 hover:bg-slate-100">Kategori {getSortIcon('category')}</th>
+                <th onClick={() => requestSort('stock')} className="cursor-pointer px-3 py-3.5 text-center text-sm font-semibold text-slate-900 hover:bg-slate-100">Stok Aktual {getSortIcon('stock')}</th>
+                <th onClick={() => requestSort('avg')} className="cursor-pointer px-3 py-3.5 text-right text-sm font-semibold text-slate-900 hover:bg-slate-100">Avg Cost {getSortIcon('avg')}</th>
+                <th onClick={() => requestSort('totalValue')} className="cursor-pointer px-3 py-3.5 text-right text-sm font-semibold text-slate-900 hover:bg-slate-100">Total Value {getSortIcon('totalValue')}</th>
                 <th className="px-3 py-3.5 text-center text-sm font-semibold text-slate-900">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 bg-white">
-              {items.map(item => {
-                const stock = getCurrentStock(item.id);
-                const avg = costingService.getItemAverageCost(item.id);
-                return (
+              {(() => {
+                const requestSort = (key: string) => {
+                  let direction: 'asc' | 'desc' = 'asc';
+                  if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+                    direction = 'desc';
+                  }
+                  setSortConfig({ key, direction });
+                };
+
+                const getSortIcon = (columnKey: string) => {
+                  if (sortConfig?.key !== columnKey) return <ArrowDown className="w-3 h-3 inline ml-1 text-slate-300" />;
+                  return sortConfig.direction === 'asc' ? <ArrowUp className="w-3 h-3 inline ml-1 text-brand-500" /> : <ArrowDown className="w-3 h-3 inline ml-1 text-brand-500" />;
+                };
+
+                const sortedItems = [...items].sort((a, b) => {
+                  if (!sortConfig) return 0;
+                  let aVal: any = a[sortConfig.key as keyof typeof a];
+                  let bVal: any = b[sortConfig.key as keyof typeof b];
+
+                  if (sortConfig.key === 'category') {
+                    aVal = getCategoryName(a.category);
+                    bVal = getCategoryName(b.category);
+                  } else if (sortConfig.key === 'stock') {
+                    aVal = getCurrentStock(a.id);
+                    bVal = getCurrentStock(b.id);
+                  } else if (sortConfig.key === 'avg') {
+                    aVal = costingService.getItemAverageCost(a.id);
+                    bVal = costingService.getItemAverageCost(b.id);
+                  } else if (sortConfig.key === 'totalValue') {
+                    aVal = getCurrentStock(a.id) * costingService.getItemAverageCost(a.id);
+                    bVal = getCurrentStock(b.id) * costingService.getItemAverageCost(b.id);
+                  }
+
+                  if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+                  if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+                  return 0;
+                });
+
+                return sortedItems.map(item => {
+                  const stock = getCurrentStock(item.id);
+                  const avg = costingService.getItemAverageCost(item.id);
+                  return (
                 <tr key={item.id}>
                   <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-slate-900">{item.name}</td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500"><Badge variant="default">{getCategoryName(item.category)}</Badge></td>
@@ -551,7 +590,9 @@ export default function Inventory() {
                     </button>
                   </td>
                 </tr>
-              )})}
+                  );
+                });
+              })()}
             </tbody>
           </table>
         </div>
