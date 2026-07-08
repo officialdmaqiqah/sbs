@@ -436,11 +436,6 @@ export default function Purchase() {
     project_id: (po) => getProjectName(po.project_id)
   });
 
-  const getSupplierName = (id: string) => suppliers.find(s => s.id === id)?.name || 'Unknown';
-  const getProjectName = (id: string) => projects.find(p => p.id === id)?.name || 'Unknown';
-  const getItemName = (id: string) => items.find(i => i.id === id)?.name || 'Unknown';
-  const getItemUnit = (id: string) => items.find(i => i.id === id)?.unit || '';
-
   const getPOBadgeColor = (status: string) => {
     switch(status) {
       case 'Draft': return 'default';
