@@ -109,7 +109,7 @@ export function useCashBankMutations(projectIdFilter?: string) {
       }
     });
     return balances;
-  }, [data]);
+  }, [filteredData]);
 
   return { 
     data: filteredData, 

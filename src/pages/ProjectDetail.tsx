@@ -10,6 +10,7 @@ import { useCashBankMutations } from '../hooks/useCashBankMutations';
 import { useCashBankAccounts } from '../hooks/useFinance';
 import toast from 'react-hot-toast';
 import { CurrencyInput } from '../components/ui/CurrencyInput';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
@@ -19,6 +20,7 @@ export default function ProjectDetail() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'team' | 'capital'>('dashboard');
 
   const { activeProject, setActiveProject } = useProject();
+  const { profile } = useAuth();
 
   // Data
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
@@ -406,7 +408,8 @@ function ProjectCapital({ projectId, investments, reload, accounts, teamMembers 
       action: async () => {
         setIsSubmitting(true);
         try {
-          await supabase.from('cash_bank_mutations').insert({
+          const { error: insertErr } = await supabase.from('cash_bank_mutations').insert({
+            organization_id: profile?.organization_id,
             mutation_type: 'IN',
             to_cash_bank_id: inv.cash_bank_id,
             project_id: projectId,
@@ -417,6 +420,8 @@ function ProjectCapital({ projectId, investments, reload, accounts, teamMembers 
             mutation_date: new Date().toISOString().split('T')[0],
             notes: `Setoran Modal dari ${inv.investors?.name} - ${inv.notes || ''}`
           });
+          
+          if (insertErr) throw insertErr;
 
           await supabase.from('project_investments').update({ is_synced_to_cash: true }).eq('id', inv.id);
           reload();
@@ -424,6 +429,36 @@ function ProjectCapital({ projectId, investments, reload, accounts, teamMembers 
         } catch (e: any) {
           console.error(e);
           toast.error('Gagal menyinkronkan: ' + e.message);
+        } finally {
+          setIsSubmitting(false);
+        }
+      }
+    });
+  };
+
+  const unsyncToCash = async (inv: any) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Batal Catat ke Kas',
+      message: `Tarik kembali pencatatan kas untuk modal Rp ${inv.amount.toLocaleString('id-ID')}? (Data di mutasi kas akan dihapus)`,
+      type: 'danger',
+      confirmText: 'Ya, Batal',
+      action: async () => {
+        setIsSubmitting(true);
+        try {
+          const { error: delErr } = await supabase.from('cash_bank_mutations')
+            .delete()
+            .eq('reference_id', inv.id)
+            .eq('source_module', 'PROJECT_CAPITAL');
+          
+          if (delErr) throw delErr;
+
+          await supabase.from('project_investments').update({ is_synced_to_cash: false }).eq('id', inv.id);
+          reload();
+          setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+        } catch (e: any) {
+          console.error(e);
+          toast.error('Gagal membatalkan: ' + e.message);
         } finally {
           setIsSubmitting(false);
         }
@@ -489,7 +524,10 @@ function ProjectCapital({ projectId, investments, reload, accounts, teamMembers 
               <td className="px-4 py-3 text-sm text-slate-500">{inv.payment_method}</td>
               <td className="px-4 py-3 text-right">
                 {inv.is_synced_to_cash ? (
-                  <Badge variant="success">Tercatat di Kas</Badge>
+                  <div className="flex justify-end gap-2 items-center">
+                    <Badge variant="success">Tercatat di Kas</Badge>
+                    <button onClick={() => unsyncToCash(inv)} className="text-xs bg-red-50 text-red-600 px-2 py-1 rounded border border-red-200 hover:bg-red-100" title="Batal catat ke kas">Batal</button>
+                  </div>
                 ) : (
                   <div className="flex justify-end gap-2">
                     <button onClick={() => syncToCash(inv)} className="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded border border-indigo-200 hover:bg-indigo-100">
