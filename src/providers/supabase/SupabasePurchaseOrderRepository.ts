@@ -70,7 +70,12 @@ export class SupabasePurchaseOrderRepository implements PurchaseOrderRepository 
   }
 
   async updatePurchaseOrder(id: string, input: Partial<PurchaseOrder>): Promise<PurchaseOrder> {
-    const { data, error } = await supabase.from('purchase_orders').update(input).eq('id', id).select().single();
+    const payload = { ...input } as any;
+    if (payload.date) {
+      payload.po_date = payload.date;
+      delete payload.date;
+    }
+    const { data, error } = await supabase.from('purchase_orders').update(payload).eq('id', id).select().single();
     if (error) throw error;
     return data as any;
   }
