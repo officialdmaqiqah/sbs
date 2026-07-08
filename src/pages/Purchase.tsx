@@ -264,9 +264,6 @@ export default function Purchase() {
     try {
       const provider = getDataProvider();
       if (editingPOId) {
-        // For simplicity, we delete existing items and recreate them via a custom call or just rely on the UI
-        // Since we don't have a full update RPC, we will update the PO header and warn the user about items.
-        // In a real app, we'd use an RPC to update PO + Items transactionally.
         await provider.getPurchaseOrderRepository().updatePurchaseOrder(editingPOId, {
           supplier_id: poForm.supplier_id,
           project_id: poForm.project_id,
@@ -274,8 +271,9 @@ export default function Purchase() {
           total_amount: getPOTotalAmount(),
           shipping_cost: poForm.shipping_cost || 0,
           notes: poForm.notes,
-        });
-        toast.success('PO berhasil diupdate! (Catatan: Update item PO saat ini belum didukung penuh)');
+          items: poItems as any
+        } as any);
+        toast.success('PO berhasil diupdate!');
       } else {
         await provider.getPurchaseOrderRepository().createPurchaseOrder({
           organization_id: profile?.organization_id,
@@ -860,6 +858,7 @@ export default function Purchase() {
                           type="number" 
                           data-testid="receive-qty-input"
                           min="0" 
+                          step="any"
                           max={remaining}
                           value={item.qty_to_receive === 0 ? '' : item.qty_to_receive} 
                           onChange={e => {

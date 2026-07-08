@@ -70,13 +70,29 @@ export class SupabasePurchaseOrderRepository implements PurchaseOrderRepository 
   }
 
   async updatePurchaseOrder(id: string, input: Partial<PurchaseOrder>): Promise<PurchaseOrder> {
-    const payload = { ...input } as any;
+    const { items, ...payload } = input as any;
     if (payload.date) {
       payload.po_date = payload.date;
       delete payload.date;
     }
     const { data, error } = await supabase.from('purchase_orders').update(payload).eq('id', id).select().single();
     if (error) throw error;
+
+    if (items && items.length > 0) {
+      await supabase.from('purchase_order_items').delete().eq('po_id', id);
+      
+      const itemsToInsert = items.map((i: any) => ({
+        po_id: id,
+        item_id: i.item_id,
+        quantity: i.qty_ordered || i.quantity,
+        unit_price: i.unit_price || 0,
+        total_price: i.subtotal || 0,
+        received_quantity: 0
+      }));
+      const { error: itemsError } = await supabase.from('purchase_order_items').insert(itemsToInsert);
+      if (itemsError) throw itemsError;
+    }
+
     return data as any;
   }
 }
