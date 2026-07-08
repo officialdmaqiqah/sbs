@@ -88,7 +88,7 @@ export default function FeedMixing() {
       setIsModalOpen(false);
       navigate(`/operations/production/${newProd.id}`);
     } catch (err: any) {
-      toast.error(err.message || 'Gagal membuat draft racikan');
+      toast.error(err.message || 'Gagal membuat draft produksi');
     } finally {
       setIsSaving(false);
     }
@@ -107,11 +107,11 @@ export default function FeedMixing() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Racik Pakan</h2>
+          <h2 className="text-2xl font-bold text-slate-900">Produksi Pakan</h2>
           <p className="text-sm text-slate-500">Konversi bahan pakan mentah menjadi pakan siap jual/pakai</p>
         </div>
         <button onClick={openModal} className="bg-brand-600 text-white px-4 py-2 rounded-md font-medium flex items-center gap-2 hover:bg-brand-700">
-          <Plus className="w-4 h-4" /> Buat Draft Racikan
+          <Plus className="w-4 h-4" /> Buat Draft Produksi
         </button>
       </div>
 
@@ -166,16 +166,16 @@ export default function FeedMixing() {
               )
             })}
             {!loading && filteredProductions.length === 0 && (
-              <tr><td colSpan={6} className="text-center py-8 text-slate-500">Tidak ada riwayat racikan pakan.</td></tr>
+              <tr><td colSpan={6} className="text-center py-8 text-slate-500">Tidak ada riwayat produksi pakan.</td></tr>
             )}
           </tbody>
         </table>
       </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Draft Racik Pakan">
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Draft Produksi Pakan">
         <form onSubmit={handleCreate} className="space-y-4 max-h-[80vh] overflow-y-auto px-1">
           <div className="bg-slate-50 p-3 rounded text-sm text-slate-600 mb-4">
-            Isi formulir ini untuk membuat Draft Racikan. Pemotongan stok bahan baru akan dilakukan saat Anda meng-klik "Proses Produksi" di halaman Detail.
+            Isi formulir ini untuk membuat Draft Produksi. Pemotongan stok bahan baru akan dilakukan saat Anda meng-klik "Proses Produksi" di halaman Detail.
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -190,7 +190,7 @@ export default function FeedMixing() {
           </div>
 
           <div className="border border-slate-200 rounded-md p-4 bg-white space-y-3">
-            <h3 className="font-semibold text-slate-800 border-b pb-2">Barang Hasil Racikan</h3>
+            <h3 className="font-semibold text-slate-800 border-b pb-2">Barang Hasil Produksi</h3>
             <div className="grid grid-cols-3 gap-4">
               <div className="col-span-2">
                 <label className="block text-sm font-medium text-slate-700">Pilih Pakan Jadi</label>

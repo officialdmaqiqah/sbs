@@ -47,7 +47,7 @@ const navigation: MenuItem[] = [
       { name: 'Stok Barang', href: '/inventory' },
       { name: 'Pembelian (PO)', href: '/purchase' },
       { name: 'Produksi Kandang', href: '/operations/cage-production' },
-      { name: 'Racik Pakan', href: '/operations/feed-mixing' },
+      { name: 'Produksi Pakan', href: '/operations/feed-mixing' },
     ]
   },
   {
