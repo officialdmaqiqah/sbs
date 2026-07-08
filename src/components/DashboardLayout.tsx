@@ -44,7 +44,7 @@ const navigation: MenuItem[] = [
     icon: Package,
     roles: ['CEO_ADMIN', 'PRODUKSI'],
     children: [
-      { name: 'Stok Barang', href: '/inventory' },
+      { name: 'Master Barang', href: '/inventory' },
       { name: 'Pembelian (PO)', href: '/purchase' },
       { name: 'Produksi Kandang', href: '/operations/cage-production' },
       { name: 'Produksi Pakan', href: '/operations/feed-mixing' },
