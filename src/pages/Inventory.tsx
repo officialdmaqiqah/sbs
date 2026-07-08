@@ -543,7 +543,7 @@ export default function Inventory() {
             <tbody className="divide-y divide-slate-200 bg-white">
               {sortedItems.map(item => {
                 const stock = getCurrentStock(item.id);
-                const avg = item.avg_cost || 0;
+                const avg = item.standardCost || item.avg_cost || 0;
                 return (
                 <tr key={item.id}>
                   <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-slate-900">{item.name}</td>
