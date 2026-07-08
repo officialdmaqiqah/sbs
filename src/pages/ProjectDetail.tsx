@@ -321,6 +321,7 @@ function ProjectTeam({ projectId, teamMembers, reload }: { projectId: string, te
 
 function ProjectCapital({ projectId, investments, reload, accounts, teamMembers }: { projectId: string, investments: any[], reload: () => void, accounts: any[], teamMembers: any[] }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [editingInvId, setEditingInvId] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [amount, setAmount] = useState<number | string>('');
   const [paymentMethod, setPaymentMethod] = useState('Kas Tunai');
@@ -341,38 +342,49 @@ function ProjectCapital({ projectId, investments, reload, accounts, teamMembers 
     if (isSubmitting) return;
     setIsSubmitting(true);
     try {
-      const { data: orgData } = await supabase.from('projects').select('organization_id').eq('id', projectId).single();
-      
-      let invId;
-      // Check if investor already exists
-      const { data: existingInv } = await supabase.from('investors')
-        .select('id')
-        .ilike('name', name)
-        .eq('organization_id', orgData?.organization_id)
-        .maybeSingle();
-
-      if (existingInv) {
-        invId = existingInv.id;
+      if (editingInvId) {
+        await supabase.from('project_investments').update({
+          amount: Number(amount),
+          payment_method: paymentMethod,
+          cash_bank_id: cashBankId || null,
+          notes: notes,
+        }).eq('id', editingInvId);
       } else {
-        const { data: invData } = await supabase.from('investors').insert({
-          organization_id: orgData?.organization_id,
-          name: name
-        }).select().single();
-        invId = invData.id;
-      }
+        const { data: orgData } = await supabase.from('projects').select('organization_id').eq('id', projectId).single();
+        
+        let invId;
+        // Check if investor already exists
+        const { data: existingInv } = await supabase.from('investors')
+          .select('id')
+          .ilike('name', name)
+          .eq('organization_id', orgData?.organization_id)
+          .maybeSingle();
 
-      await supabase.from('project_investments').insert({
-        project_id: projectId,
-        investor_id: invId,
-        amount: Number(amount),
-        payment_method: paymentMethod,
-        cash_bank_id: cashBankId || null,
-        notes: notes,
-        status: 'Confirmed'
-      });
+        if (existingInv) {
+          invId = existingInv.id;
+        } else {
+          const { data: invData } = await supabase.from('investors').insert({
+            organization_id: orgData?.organization_id,
+            name: name
+          }).select().single();
+          invId = invData.id;
+        }
+
+        await supabase.from('project_investments').insert({
+          project_id: projectId,
+          investor_id: invId,
+          amount: Number(amount),
+          payment_method: paymentMethod,
+          cash_bank_id: cashBankId || null,
+          notes: notes,
+          status: 'Confirmed'
+        });
+      }
+      setEditingInvId(null);
       setIsOpen(false);
       setName('');
       setAmount('');
+      setCashBankId('');
       reload();
     } catch (err) {
       console.error(err);
@@ -440,14 +452,21 @@ function ProjectCapital({ projectId, investments, reload, accounts, teamMembers 
         }
       }
     });
-  };
+};
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-bold text-slate-900">Modal Investor Internal</h3>
-        <button onClick={() => setIsOpen(true)} className="flex items-center gap-2 bg-brand-600 text-white px-3 py-1.5 rounded-md text-sm hover:bg-brand-500">
-          <Plus className="w-4 h-4" /> Input Modal
+        <h3 className="text-lg font-semibold text-slate-900">Modal Investor / Pinjaman</h3>
+        <button onClick={() => {
+          setEditingInvId(null);
+          setName('');
+          setAmount('');
+          setCashBankId('');
+          setNotes('');
+          setIsOpen(true);
+        }} className="flex items-center gap-2 bg-brand-600 text-white px-3 py-1.5 rounded-md text-sm hover:bg-brand-500">
+          <Plus size={16} /> Tambah Modal
         </button>
       </div>
 
@@ -476,6 +495,17 @@ function ProjectCapital({ projectId, investments, reload, accounts, teamMembers 
                     <button onClick={() => syncToCash(inv)} className="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded border border-indigo-200 hover:bg-indigo-100">
                       Catat ke Kas
                     </button>
+                    <button onClick={() => {
+                      setEditingInvId(inv.id);
+                      setName(inv.investors?.name || '');
+                      setAmount(inv.amount);
+                      setPaymentMethod(inv.payment_method);
+                      setCashBankId(inv.cash_bank_id || '');
+                      setNotes(inv.notes || '');
+                      setIsOpen(true);
+                    }} className="text-xs bg-slate-50 text-slate-600 px-2 py-1 rounded border border-slate-200 hover:bg-slate-100">
+                      Edit
+                    </button>
                     <button onClick={() => handleDelete(inv)} className="text-xs bg-red-50 text-red-600 px-2 py-1 rounded border border-red-200 hover:bg-red-100">
                       Hapus
                     </button>
@@ -487,13 +517,14 @@ function ProjectCapital({ projectId, investments, reload, accounts, teamMembers 
         </tbody>
       </table>
 
-      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title="Input Modal Investor">
+      <Modal isOpen={isOpen} onClose={() => { setIsOpen(false); setEditingInvId(null); }} title={editingInvId ? "Edit Modal" : "Input Modal Investor"}>
         <form onSubmit={handleAdd} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Nama Investor Internal</label>
+            <label className="block text-sm font-medium text-slate-700">Nama Investor / Peminjam</label>
             <input 
-              required 
               type="text" 
+              required
+              disabled={!!editingInvId}
               list="team-members"
               placeholder="Pilih dari tim atau ketik nama baru..."
               className="block w-full rounded-md border-slate-300 py-2 px-3 text-sm border focus:ring-brand-500 focus:border-brand-500" 
