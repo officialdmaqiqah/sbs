@@ -260,7 +260,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             
             {/* Active Project Selector */}
             <div className="ml-4 flex items-center gap-2">
-              <span className="text-sm font-medium text-slate-500 hidden md:block">Project Aktif:</span>
+              <span className="text-sm font-medium text-slate-500 hidden md:block whitespace-nowrap">Project Aktif:</span>
               <select
                 className="block w-full max-w-[200px] rounded-md border-slate-300 py-1.5 pl-3 pr-8 text-sm focus:border-brand-500 focus:outline-none focus:ring-brand-500 bg-slate-50"
                 value={activeProject?.id || ''}
