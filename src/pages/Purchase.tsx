@@ -17,7 +17,7 @@ const SUPPLIER_CATEGORIES: SupplierCategory[] = ['Ayam', 'Bahan Kandang', 'Bahan
 
 export default function Purchase() {
   const { profile } = useAuth();
-  const [activeTab, setActiveTab] = useState<'supplier' | 'po'>('supplier');
+  const [activeTab, setActiveTab] = useState<'supplier' | 'po'>('po');
   
   // Data State
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
