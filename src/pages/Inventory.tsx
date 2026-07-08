@@ -33,7 +33,7 @@ export default function Inventory() {
   }
 
   const { activeProject } = useProject();
-  const [activeTab, setActiveTab] = useState<'master' | 'kartu' | 'opname' | 'ayam' | 'bahan' | 'gudang'>('kartu');
+  const [activeTab, setActiveTab] = useState<'master' | 'kartu' | 'opname' | 'ayam' | 'bahan' | 'gudang'>('master');
   const [projectFilter, setProjectFilter] = useState<string>(activeProject?.id || 'ALL');
 
   useEffect(() => {
@@ -543,7 +543,7 @@ export default function Inventory() {
             <tbody className="divide-y divide-slate-200 bg-white">
               {sortedItems.map(item => {
                 const stock = getCurrentStock(item.id);
-                const avg = costingService.getItemAverageCost(item.id);
+                const avg = item.avg_cost || 0;
                 return (
                 <tr key={item.id}>
                   <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-slate-900">{item.name}</td>
