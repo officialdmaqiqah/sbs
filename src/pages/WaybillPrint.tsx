@@ -22,7 +22,7 @@ export default function WaybillPrint() {
       <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4 mb-6">
         <div>
           <h1 className="text-3xl font-bold uppercase tracking-wider">Surat Jalan</h1>
-          <p className="text-sm mt-1">Sinar Bintang Sakti</p>
+          <p className="text-sm mt-1">Sultan Berkah Sejahtera</p>
         </div>
         <div className="text-right">
           <p className="font-bold text-lg">{shipment.do_number}</p>

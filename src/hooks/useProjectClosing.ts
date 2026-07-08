@@ -141,7 +141,7 @@ export function useProjectClosing(projectId?: string) {
 
       // Company Cash
       distributions.push({
-        recipient_name: 'Kas Perusahaan Sinar Bintang Sakti',
+        recipient_name: 'Kas Perusahaan Sultan Berkah Sejahtera',
         recipient_role: 'Kas Perusahaan',
         total_share: companyShare
       });
