@@ -383,7 +383,7 @@ function ProjectCapital({ projectId, investments, reload, accounts, teamMembers 
   };
 
   const syncToCash = async (inv: any) => {
-    if(!inv.cash_bank_id) return toast.error('Pilih akun Kas/Bank terlebih dahulu sebelum sinkronasi.');
+    if(!inv.cash_bank_id) return toast.error('Akun Kas/Bank kosong. Silakan Hapus data ini dan Buat Ulang dengan memilih Rekening.');
     
     setConfirmDialog({
       isOpen: true,
@@ -519,8 +519,8 @@ function ProjectCapital({ projectId, investments, reload, accounts, teamMembers 
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700">Pilih Rekening Tujuan (Opsional)</label>
-            <select className="mt-1 block w-full rounded-md border-slate-300 py-2 px-3 text-sm border focus:ring-brand-500 focus:border-brand-500" value={cashBankId} onChange={e => setCashBankId(e.target.value)}>
+            <label className="block text-sm font-medium text-slate-700">Pilih Rekening Tujuan (Wajib)</label>
+            <select required className="mt-1 block w-full rounded-md border-slate-300 py-2 px-3 text-sm border focus:ring-brand-500 focus:border-brand-500" value={cashBankId} onChange={e => setCashBankId(e.target.value)}>
               <option value="">-- Pilih Rekening --</option>
               {accounts.map(acc => (
                 <option key={acc.id} value={acc.id}>{acc.name} ({acc.account_type})</option>
