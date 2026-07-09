@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { supabase } from '../lib/supabase';
-import { environment } from '../config/environment';
+import { getDataProvider } from '../providers';
 
 export interface CashBankMutation {
   id: string;
@@ -27,20 +26,15 @@ export function useCashBankMutations(projectIdFilter?: string) {
     setLoading(true);
     setError(null);
     try {
-      if (environment.dataProvider !== 'supabase') {
-        // Fallback for mock db if needed, or just set empty
-        setData([]);
-        setLoading(false);
-        return;
-      }
-
-      const { data: mutations, error } = await supabase
-        .from('cash_bank_mutations')
-        .select('*')
-        .order('mutation_date', { ascending: false })
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const provider = getDataProvider();
+      const mutationsRaw = await provider.getRepository<CashBankMutation>('cash_bank_mutations').list();
+      // Sort by mutation_date desc, created_at desc
+      const mutations = mutationsRaw.sort((a, b) => {
+        if (a.mutation_date !== b.mutation_date) {
+          return new Date(b.mutation_date).getTime() - new Date(a.mutation_date).getTime();
+        }
+        return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+      });
       setData(mutations || []);
     } catch (err: any) {
       setError(err.message || 'Error fetching mutations');
@@ -51,25 +45,19 @@ export function useCashBankMutations(projectIdFilter?: string) {
 
   const createMutation = async (mutation: Omit<CashBankMutation, 'id' | 'created_at'>) => {
     try {
-      if (environment.dataProvider !== 'supabase') {
-        throw new Error("Cannot create mutation in local mock DB");
-      }
+      const provider = getDataProvider();
       
       // Fallback dummy organization if not provided
       const finalMutation = {
         ...mutation,
-        organization_id: mutation.organization_id || '00000000-0000-0000-0000-000000000000'
+        organization_id: mutation.organization_id || '00000000-0000-0000-0000-000000000000',
+        created_at: new Date().toISOString()
       };
       
-      const { data, error } = await supabase
-        .from('cash_bank_mutations')
-        .insert([finalMutation])
-        .select()
-        .single();
+      const created = await provider.getRepository<CashBankMutation>('cash_bank_mutations').create(finalMutation as any);
         
-      if (error) throw error;
       await fetchData();
-      return { success: true, data };
+      return { success: true, data: created };
     } catch (err: any) {
       return { success: false, message: err.message };
     }
