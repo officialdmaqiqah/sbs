@@ -636,21 +636,21 @@ export default function Purchase() {
                       
                       // Create Inventory Transactions
                       for (const item of poItems) {
-                        await supabase.from('inventory_transactions').insert({
-                          organization_id: po.organization_id,
-                          project_id: po.project_id || null,
-                          location_id: defaultLocation,
-                          item_id: item.item_id,
-                          date: po.date || po.po_date || new Date().toISOString(),
-                          direction: 'IN',
-                          quantity: item.qty_ordered,
-                          unit_cost: item.unit_price,
-                          total_value: item.qty_ordered * item.unit_price,
-                          reference_type: 'Pembelian Tunai',
-                          reference_number: `DP-${Date.now()}-${Math.floor(Math.random()*1000)}`,
-                          notes: po.notes || 'Migrasi dari PO',
-                          transaction_id: txId
+                        const { error: rpcErr } = await supabase.rpc('post_inventory_transaction', {
+                          p_project_id: po.project_id || null,
+                          p_location_id: defaultLocation,
+                          p_item_id: item.item_id,
+                          p_movement_date: po.date || po.po_date || new Date().toISOString().split('T')[0],
+                          p_reference_type: 'Pembelian Tunai',
+                          p_direction: 'IN',
+                          p_quantity: item.qty_ordered,
+                          p_unit_cost: item.unit_price,
+                          p_reference_number: `DP-${Date.now()}-${Math.floor(Math.random()*1000)}`,
+                          p_notes: po.notes || 'Migrasi dari PO',
+                          p_transaction_id: txId,
+                          p_organization_id: po.organization_id
                         });
+                        if (rpcErr) throw rpcErr;
                       }
                       
                       // Create Cash Mutation
