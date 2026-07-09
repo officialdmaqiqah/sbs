@@ -12,6 +12,9 @@ import SortIcon from '../components/SortIcon';
 import toast from 'react-hot-toast';
 import { confirmAlert } from '../components/ui/ConfirmAlert';
 import { CurrencyInput } from '../components/ui/CurrencyInput';
+import { usePostInventoryTransaction } from '../hooks/usePostInventoryTransaction';
+import { useCashBankMutations } from '../hooks/useCashBankMutations';
+import { useCashBankAccounts } from '../hooks/useFinance';
 
 const SUPPLIER_CATEGORIES: SupplierCategory[] = ['Ayam', 'Bahan Kandang', 'Bahan Pakan', 'Vitamin / Obat', 'Peralatan', 'Umum'];
 
@@ -55,6 +58,21 @@ export default function Purchase() {
   const [receiveItems, setReceiveItems] = useState<(PurchaseOrderItem & { qty_to_receive: number })[]>([]);
   const [receiveLocationId, setReceiveLocationId] = useState('');
   const [receiptResult, setReceiptResult] = useState<{receipt_id: string, items: any[]} | null>(null);
+
+  // Direct Purchase Form
+  const [isDPModalOpen, setIsDPModalOpen] = useState(false);
+  const [dpForm, setDpForm] = useState({
+    supplier_id: '',
+    project_id: '',
+    date: new Date().toISOString().split('T')[0],
+    location_id: '',
+    cash_bank_id: '',
+    notes: ''
+  });
+  const [dpItems, setDpItems] = useState<Partial<PurchaseOrderItem>[]>([]);
+  const { postTransaction, loading: postingTransaction } = usePostInventoryTransaction();
+  const { data: cashAccounts } = useCashBankAccounts();
+  const { createMutation: createCashMutation } = useCashBankMutations();
 
   useEffect(() => {
     loadData();
@@ -410,6 +428,91 @@ export default function Purchase() {
       loadData();
     } catch (e: any) {
       toast.error("Gagal membuat Supplier Bill: " + e.message);
+    }
+  };
+
+  // ---- Direct Purchase (DP) Methods ----
+  const openAddDP = () => {
+    setDpForm({ supplier_id: '', project_id: '', date: new Date().toISOString().split('T')[0], location_id: '', cash_bank_id: '', notes: '' });
+    setDpItems([{ item_id: '', qty_ordered: 1, unit_price: 0, discount: 0, subtotal: 0 }]);
+    setIsDPModalOpen(true);
+  };
+
+  const addDPItemRow = () => setDpItems([...dpItems, { item_id: '', qty_ordered: 1, unit_price: 0, discount: 0, subtotal: 0 }]);
+
+  const updateDPItem = (index: number, field: keyof PurchaseOrderItem, value: any) => {
+    const newItems = [...dpItems];
+    newItems[index] = { ...newItems[index], [field]: value };
+    if (['qty_ordered', 'unit_price', 'discount'].includes(field)) {
+      const qty = newItems[index].qty_ordered || 0;
+      const price = newItems[index].unit_price || 0;
+      const disc = newItems[index].discount || 0;
+      newItems[index].subtotal = (qty * price) - disc;
+    }
+    setDpItems(newItems);
+  };
+
+  const removeDPItemRow = (index: number) => {
+    const newItems = [...dpItems];
+    newItems.splice(index, 1);
+    setDpItems(newItems);
+  };
+
+  const getDPTotalAmount = () => dpItems.reduce((sum, item) => sum + (item.subtotal || 0), 0);
+
+  const handleSaveDP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (postingTransaction) return;
+    
+    if (!dpForm.location_id) return toast.error('Lokasi Gudang wajib dipilih!');
+    if (!dpForm.cash_bank_id) return toast.error('Kas / Bank Pembayar wajib dipilih!');
+    if (dpItems.length === 0) return toast.error('Minimal 1 item barang harus ditambahkan!');
+    
+    for (const item of dpItems) {
+      if (!item.item_id) return toast.error('Pilih barang untuk semua baris item!');
+      if ((item.qty_ordered || 0) <= 0) return toast.error('Qty harus lebih dari 0!');
+    }
+
+    try {
+      const txId = crypto.randomUUID();
+      const totalAmount = getDPTotalAmount();
+      
+      // 1. Process Stock In for each item
+      for (const item of dpItems) {
+        await postTransaction({
+          projectId: dpForm.project_id || null,
+          locationId: dpForm.location_id,
+          itemId: item.item_id as string,
+          date: dpForm.date,
+          direction: 'IN',
+          quantity: item.qty_ordered || 1,
+          unitCost: Math.max(0, (item.unit_price || 0) - (item.discount || 0)),
+          referenceType: 'Pembelian Tunai',
+          referenceNumber: `DP-${Date.now()}`,
+          notes: dpForm.notes,
+          transactionId: txId
+        });
+      }
+
+      // 2. Cut Cash
+      await createCashMutation({
+        mutation_date: dpForm.date,
+        mutation_type: 'OUT',
+        from_cash_bank_id: dpForm.cash_bank_id,
+        to_cash_bank_id: null,
+        amount: totalAmount,
+        notes: `Pembelian Langsung - ${dpForm.notes || 'Bahan Material'}`,
+        project_id: dpForm.project_id || null,
+        reference_type: 'Pembelian Stok',
+        reference_id: txId,
+        source_module: 'Purchase'
+      });
+
+      toast.success('Pembelian Langsung berhasil diproses!');
+      setIsDPModalOpen(false);
+      loadData();
+    } catch (err: any) {
+      toast.error('Gagal memproses pembelian: ' + err.message);
     }
   };
 
@@ -888,6 +991,109 @@ export default function Purchase() {
             </button>
             <button type="submit" data-testid="btn-submit-receive" disabled={isSubmitting} className="px-4 py-2 text-sm text-white bg-brand-600 rounded-md hover:bg-brand-700 disabled:opacity-50">
               {isSubmitting ? 'Menyimpan...' : 'Simpan Penerimaan'}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Direct Purchase Modal */}
+      <Modal isOpen={isDPModalOpen} onClose={() => setIsDPModalOpen(false)} title="Pembelian Langsung (Tunai)" size="xl">
+        <form onSubmit={handleSaveDP} className="space-y-4 max-h-[80vh] overflow-y-auto px-1 pb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium leading-6 text-slate-900">Tanggal Pembelian <span className="text-red-500">*</span></label>
+              <input type="date" required value={dpForm.date} onChange={e => setDpForm({...dpForm, date: e.target.value})} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-sm" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium leading-6 text-slate-900">Project (Opsional)</label>
+              <select value={dpForm.project_id} onChange={e => setDpForm({...dpForm, project_id: e.target.value})} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-sm">
+                <option value="">-- Tanpa Project --</option>
+                {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium leading-6 text-slate-900">Lokasi Gudang Penerima <span className="text-red-500">*</span></label>
+              <select required value={dpForm.location_id} onChange={e => setDpForm({...dpForm, location_id: e.target.value})} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-sm">
+                <option value="">-- Pilih Gudang --</option>
+                {locations.map(loc => <option key={loc.id} value={loc.id}>{loc.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium leading-6 text-slate-900">Kas / Bank Pembayar <span className="text-red-500">*</span></label>
+              <select required value={dpForm.cash_bank_id} onChange={e => setDpForm({...dpForm, cash_bank_id: e.target.value})} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-sm">
+                <option value="">-- Pilih Kas/Bank --</option>
+                {cashAccounts?.map(c => <option key={c.id} value={c.id}>{c.account_name} (Rp {Number(c.balance || 0).toLocaleString('id-ID')})</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium leading-6 text-slate-900">Supplier (Opsional)</label>
+            <select value={dpForm.supplier_id} onChange={e => setDpForm({...dpForm, supplier_id: e.target.value})} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-sm">
+              <option value="">-- Pembelian Umum (Tanpa Supplier) --</option>
+              {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+          </div>
+
+          <div className="border border-slate-200 rounded-lg overflow-hidden bg-white mt-4">
+            <div className="bg-slate-50 px-4 py-3 border-b border-slate-200 flex justify-between items-center">
+              <h4 className="font-semibold text-slate-900">Daftar Barang <span className="text-red-500">*</span></h4>
+            </div>
+            <div className="p-4 space-y-4">
+              {dpItems.map((item, index) => (
+                <div key={index} className="flex flex-col sm:flex-row gap-3 items-start sm:items-center bg-slate-50 p-3 rounded border border-slate-100">
+                  <div className="flex-grow grid grid-cols-1 sm:grid-cols-12 gap-3 w-full">
+                    <div className="col-span-4">
+                      <label className="block text-xs text-slate-500 mb-1">Barang</label>
+                      <select required value={item.item_id} onChange={e => updateDPItem(index, 'item_id', e.target.value)} className="block w-full rounded-md border-0 py-1.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 sm:text-sm">
+                        <option value="">-- Pilih --</option>
+                        {items.filter(i => !['Ayam', 'Telur'].includes(i.category)).map(i => <option key={i.id} value={i.id}>{i.name} ({i.unit})</option>)}
+                      </select>
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-xs text-slate-500 mb-1">Qty</label>
+                      <input type="number" min="0.01" step="any" required value={item.qty_ordered || ''} onChange={e => updateDPItem(index, 'qty_ordered', Number(e.target.value))} className="block w-full rounded-md border-0 py-1.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 sm:text-sm" />
+                    </div>
+                    <div className="col-span-3">
+                      <label className="block text-xs text-slate-500 mb-1">Harga Satuan</label>
+                      <CurrencyInput value={item.unit_price || 0} onChange={(val) => updateDPItem(index, 'unit_price', val)} className="block w-full rounded-md border-0 py-1.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 sm:text-sm" />
+                    </div>
+                    <div className="col-span-3">
+                      <label className="block text-xs text-slate-500 mb-1">Subtotal</label>
+                      <input type="text" readOnly value={`Rp ${Number(item.subtotal || 0).toLocaleString('id-ID')}`} className="block w-full rounded-md border-0 py-1.5 text-slate-900 bg-slate-100 shadow-sm ring-1 ring-inset ring-slate-300 sm:text-sm" />
+                    </div>
+                  </div>
+                  <button type="button" onClick={() => removeDPItemRow(index)} className="p-2 text-red-500 hover:bg-red-50 rounded" disabled={dpItems.length === 1}>
+                    <Trash2 className="h-5 w-5" />
+                  </button>
+                </div>
+              ))}
+              
+              <button type="button" onClick={addDPItemRow} className="inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700">
+                <Plus className="h-4 w-4" /> Tambah Baris Barang
+              </button>
+            </div>
+            
+            <div className="bg-slate-50 px-4 py-3 border-t border-slate-200 flex justify-between items-center">
+              <span className="font-medium text-slate-700">Total Pembelian</span>
+              <span className="font-bold text-lg text-slate-900">Rp {getDPTotalAmount().toLocaleString('id-ID')}</span>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium leading-6 text-slate-900 mt-4">Catatan</label>
+            <textarea rows={2} value={dpForm.notes} onChange={e => setDpForm({...dpForm, notes: e.target.value})} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 sm:text-sm" placeholder="Misal: Beli paku dan palu di material sumber jaya..." />
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 mt-6 border-t">
+            <button type="button" onClick={() => setIsDPModalOpen(false)} className="px-4 py-2 text-sm text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50">
+              Batal
+            </button>
+            <button type="submit" disabled={postingTransaction} className="px-4 py-2 text-sm text-white bg-sbs-green-600 rounded-md hover:bg-sbs-green-700 disabled:opacity-50">
+              {postingTransaction ? 'Menyimpan...' : 'Simpan Pembelian'}
             </button>
           </div>
         </form>
