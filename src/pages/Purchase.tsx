@@ -6,12 +6,13 @@ import { useAuth } from '../contexts/AuthContext';
 import { arApService } from '../services/arApService';
 import Modal from '../components/Modal';
 import Badge from '../components/Badge';
-import { Plus, Edit, Search, PackagePlus, Trash2, RotateCcw, FileText, X } from 'lucide-react';
+import { Plus, Edit, Search, PackagePlus, Trash2, RotateCcw, FileText, X, Paperclip } from 'lucide-react';
 import { useTableSort } from '../hooks/useTableSort';
 import SortIcon from '../components/SortIcon';
 import toast from 'react-hot-toast';
 import { confirmAlert } from '../components/ui/ConfirmAlert';
 import { CurrencyInput } from '../components/ui/CurrencyInput';
+import AttachmentUploader from '../components/AttachmentUploader';
 import { usePostInventoryTransaction } from '../hooks/usePostInventoryTransaction';
 import { useCashBankMutations } from '../hooks/useCashBankMutations';
 import { useCashBankAccounts } from '../hooks/useFinance';
@@ -77,6 +78,8 @@ export default function Purchase() {
   const { postTransaction, loading: postingTransaction } = usePostInventoryTransaction();
   const { data: cashAccounts } = useCashBankAccounts();
   const { createMutation: createCashMutation } = useCashBankMutations();
+
+  const [dpAttachmentModalId, setDpAttachmentModalId] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
@@ -605,7 +608,6 @@ export default function Purchase() {
             </button>
           )}
           
-          {activeTab === 'po' && (
           {activeTab === 'supplier' ? (
             <button
               onClick={openAddSupplier}
@@ -852,6 +854,7 @@ export default function Purchase() {
                 <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">Catatan</th>
                 <th scope="col" className="px-3 py-3.5 text-right text-sm font-semibold text-slate-900">Total (Rp)</th>
                 <th scope="col" className="px-3 py-3.5 text-center text-sm font-semibold text-slate-900">Jml Item</th>
+                <th scope="col" className="px-3 py-3.5 text-center text-sm font-semibold text-slate-900">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 bg-white">
@@ -866,10 +869,15 @@ export default function Purchase() {
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-center text-slate-500">
                     <Badge variant="info">{dp.items.length} item</Badge>
                   </td>
+                  <td className="whitespace-nowrap px-3 py-4 text-sm text-center">
+                    <button onClick={() => setDpAttachmentModalId(dp.id)} className="text-slate-500 hover:text-slate-700 mr-3" title="Lampiran">
+                      <Paperclip className="h-4 w-4 inline" />
+                    </button>
+                  </td>
                 </tr>
               ))}
               {directPurchases.length === 0 && (
-                <tr><td colSpan={5} className="py-8 text-center text-sm text-slate-500">Tidak ada riwayat pembelian langsung.</td></tr>
+                <tr><td colSpan={6} className="py-8 text-center text-sm text-slate-500">Tidak ada riwayat pembelian langsung.</td></tr>
               )}
             </tbody>
           </table>
@@ -963,11 +971,11 @@ export default function Purchase() {
                   </div>
                   <div className="w-32">
                     <label className="block text-xs font-medium text-slate-700">Harga Satuan</label>
-                    <CurrencyInput  data-testid="po-item-price" min="0" required value={item.unit_price || ""} onChange={(val) => updatePOItem(index, 'unit_price', val)} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-xs" />
+                    <CurrencyInput data-testid="po-item-price" min="0" required value={item.unit_price || ""} onChange={(val) => updatePOItem(index, 'unit_price', val)} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-xs" />
                   </div>
                   <div className="w-24">
                     <label className="block text-xs font-medium text-slate-700">Diskon</label>
-                    <CurrencyInput  min="0" value={item.discount || ""} onChange={(val) => updatePOItem(index, 'discount', val)} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-xs" />
+                    <CurrencyInput min="0" value={item.discount || ""} onChange={(val) => updatePOItem(index, 'discount', val)} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-xs" />
                   </div>
                   <div className="w-32">
                     <label className="block text-xs font-medium text-slate-700">Subtotal</label>
@@ -989,7 +997,7 @@ export default function Purchase() {
           <div className="mt-4 border-t border-slate-200 pt-4 flex flex-col items-end gap-2">
             <div className="flex items-center gap-4 w-64">
               <span className="text-sm text-slate-500 flex-1">Ongkos Kirim:</span>
-              <CurrencyInput  value={poForm.shipping_cost || ""} onChange={(val) => setPoForm({...poForm, shipping_cost: val})} className="w-32 rounded-md border-0 py-1 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-sm text-right" />
+              <CurrencyInput value={poForm.shipping_cost || ""} onChange={(val) => setPoForm({...poForm, shipping_cost: val})} className="w-32 rounded-md border-0 py-1 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-sm text-right" />
             </div>
             <div className="flex items-center gap-4 w-64 pt-2 border-t border-slate-200">
               <span className="text-sm font-bold text-slate-900 flex-1">Total PO:</span>
@@ -1003,6 +1011,16 @@ export default function Purchase() {
           </div>
 
           </fieldset>
+
+          {editingPOId && (
+            <div className="mt-6 pt-4 border-t border-slate-200">
+              <AttachmentUploader
+                entityType="purchase_order"
+                entityId={editingPOId}
+                organizationId={profile?.organization_id || ''}
+              />
+            </div>
+          )}
 
           <div className="mt-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-3">
             {!isPOViewOnly && (
@@ -1198,6 +1216,24 @@ export default function Purchase() {
             </button>
           </div>
         </form>
+      </Modal>
+
+      {/* DP Attachment Modal */}
+      <Modal isOpen={!!dpAttachmentModalId} onClose={() => setDpAttachmentModalId(null)} title="Lampiran Pembelian Langsung">
+        <div className="p-2">
+          {dpAttachmentModalId && (
+            <AttachmentUploader
+              entityType="inventory_movement"
+              entityId={dpAttachmentModalId}
+              organizationId={profile?.organization_id || ''}
+            />
+          )}
+        </div>
+        <div className="mt-6 flex justify-end">
+          <button type="button" onClick={() => setDpAttachmentModalId(null)} className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-slate-900 ring-1 ring-inset ring-slate-300 hover:bg-slate-50">
+            Tutup
+          </button>
+        </div>
       </Modal>
 
     </div>
