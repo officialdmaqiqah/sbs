@@ -6,6 +6,8 @@ import { useProjects } from '../hooks/useProjects';
 import { useProject } from '../contexts/ProjectContext';
 import toast from 'react-hot-toast';
 import { CurrencyInput } from '../components/ui/CurrencyInput';
+import AttachmentUploader from '../components/AttachmentUploader';
+import { Paperclip } from 'lucide-react';
 
 export default function CashBankTransactions() {
   const { data: mutations, createMutation, accountBalances } = useCashBankMutations();
@@ -17,6 +19,8 @@ export default function CashBankTransactions() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedTx, setSelectedTx] = useState<CashBankMutation | null>(null);
+  const [newTxId, setNewTxId] = useState<string | null>(null);
+  const [txAttachmentModalId, setTxAttachmentModalId] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     mutation_type: 'IN' as 'IN' | 'OUT' | 'TRANSFER',
@@ -42,7 +46,7 @@ export default function CashBankTransactions() {
       return;
     }
 
-    const payload: Omit<CashBankMutation, 'id' | 'created_at'> = {
+    const payload: Omit<CashBankMutation, 'id' | 'created_at'> & { id?: string } = {
       mutation_date: formData.mutation_date,
       mutation_type: formData.mutation_type,
       amount: formData.amount,
@@ -50,7 +54,8 @@ export default function CashBankTransactions() {
       project_id: formData.project_id || null,
       from_cash_bank_id: formData.mutation_type !== 'IN' ? formData.from_cash_bank_id : null,
       to_cash_bank_id: formData.mutation_type !== 'OUT' ? formData.to_cash_bank_id : null,
-      source_module: 'Manual Input'
+      source_module: 'Manual Input',
+      id: newTxId || undefined
     };
 
     const res = await createMutation(payload);
@@ -73,6 +78,7 @@ export default function CashBankTransactions() {
       notes: '',
       reference: ''
     });
+    setNewTxId(crypto.randomUUID());
     setIsModalOpen(true);
   };
 
@@ -158,8 +164,11 @@ export default function CashBankTransactions() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-slate-900">
                     {tx.amount.toLocaleString('id-ID')}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
-                    <button className="px-3 py-1 border rounded text-slate-600 hover:bg-slate-100" onClick={() => { setSelectedTx(tx); setIsDetailModalOpen(true); }}>Detail</button>
+                  <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium text-slate-900">
+                    <button onClick={() => setTxAttachmentModalId(tx.id)} className="text-slate-500 hover:text-slate-700 mr-3" title="Lampiran">
+                      <Paperclip className="h-4 w-4 inline" />
+                    </button>
+                    <button onClick={() => { setSelectedTx(tx); setIsDetailModalOpen(true); }} className="text-brand-600 hover:text-brand-900 font-bold">Detail</button>
                   </td>
                 </tr>
               );
@@ -229,7 +238,7 @@ export default function CashBankTransactions() {
                 <select className="w-full h-10 rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500" value={formData.project_id} onChange={e => setFormData({...formData, project_id: e.target.value})}>
                   <option value="">-- Bukan Transaksi Project --</option>
                   {projects.map((p: any) => (
-                    <option key={p.id} value={p.id}>{p.project_name}</option>
+                    <option key={p.id} value={p.id}>{p.name}</option>
                   ))}
                 </select>
                 <p className="text-xs text-slate-500">Pilih project jika mutasi ini berkaitan dengan biaya/pendapatan project tertentu.</p>
@@ -244,6 +253,16 @@ export default function CashBankTransactions() {
                 <label className="text-sm font-medium text-slate-700">Nomor Referensi (Opsional)</label>
                 <input className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500" value={formData.reference} onChange={e => setFormData({...formData, reference: e.target.value})} placeholder="Misal: BUKTI-001" />
               </div>
+
+              {newTxId && (
+                <div className="pt-4 border-t border-slate-100 mt-4">
+                  <AttachmentUploader
+                    entityType="cash_mutation"
+                    entityId={newTxId}
+                    organizationId={'00000000-0000-0000-0000-000000000000'}
+                  />
+                </div>
+              )}
 
               <div className="flex justify-end gap-3 pt-6 border-t border-slate-100 mt-4">
                 <button className="px-4 py-2 border border-slate-300 text-slate-700 rounded-md hover:bg-slate-50 font-medium text-sm transition-colors" type="button" onClick={() => setIsModalOpen(false)}>Batal</button>
@@ -293,11 +312,30 @@ export default function CashBankTransactions() {
               
               <div className="flex justify-between border-b pb-2 border-slate-100">
                 <span className="text-slate-500 font-medium">Project Terkait</span>
-                <span className="text-slate-900">{(selectedTx as any).project?.project_name || 'Tidak ada'}</span>
+                <span className="text-slate-900">{(selectedTx as any).project?.name || 'Tidak ada'}</span>
               </div>
             </div>
-            <div className="flex justify-end pt-6 mt-4">
-              <button className="px-4 py-2 border rounded bg-slate-100 text-slate-700 hover:bg-slate-200" type="button" onClick={() => setIsDetailModalOpen(false)}>Tutup</button>
+            <div className="mt-6 pt-4 border-t border-slate-100 flex justify-end">
+              <button className="px-4 py-2 bg-slate-100 text-slate-700 rounded-md hover:bg-slate-200 font-medium text-sm transition-colors" type="button" onClick={() => setIsDetailModalOpen(false)}>Tutup</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Attachment Modal for Existing Tx */}
+      {txAttachmentModalId && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-lg">
+            <h2 className="text-xl font-bold text-slate-900 mb-6">Lampiran Transaksi</h2>
+            <AttachmentUploader
+              entityType="cash_mutation"
+              entityId={txAttachmentModalId}
+              organizationId={'00000000-0000-0000-0000-000000000000'}
+            />
+            <div className="mt-6 flex justify-end">
+              <button type="button" onClick={() => setTxAttachmentModalId(null)} className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-slate-900 ring-1 ring-inset ring-slate-300 hover:bg-slate-50">
+                Tutup
+              </button>
             </div>
           </div>
         </div>

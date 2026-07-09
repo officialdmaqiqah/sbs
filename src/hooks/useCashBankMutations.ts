@@ -43,7 +43,7 @@ export function useCashBankMutations(projectIdFilter?: string) {
     }
   }, []);
 
-  const createMutation = async (mutation: Omit<CashBankMutation, 'id' | 'created_at'>) => {
+  const createMutation = async (mutation: Omit<CashBankMutation, 'id' | 'created_at'> & { id?: string }) => {
     try {
       const provider = getDataProvider();
       
