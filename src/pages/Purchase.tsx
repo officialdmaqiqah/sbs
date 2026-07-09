@@ -36,6 +36,7 @@ export default function Purchase() {
   const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
   const [isPOModalOpen, setIsPOModalOpen] = useState(false);
   const [editingPOId, setEditingPOId] = useState<string | null>(null);
+  const [newPoId, setNewPoId] = useState<string | null>(null);
   const [isPOViewOnly, setIsPOViewOnly] = useState(false);
   const [isReceiveModalOpen, setIsReceiveModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -74,7 +75,8 @@ export default function Purchase() {
     cash_bank_id: '',
     notes: ''
   });
-  const [dpItems, setDpItems] = useState<Partial<PurchaseOrderItem>[]>([]);
+  const [dpItems, setDpItems] = useState<{ item_id: string; qty_ordered: number; unit_price: number; discount: number; subtotal: number }[]>([]);
+  const [newDpId, setNewDpId] = useState<string | null>(null);
   const { postTransaction, loading: postingTransaction } = usePostInventoryTransaction();
   const { data: cashAccounts } = useCashBankAccounts();
   const { createMutation: createCashMutation } = useCashBankMutations();
@@ -218,6 +220,7 @@ export default function Purchase() {
   // ---- PO Methods ----
   const openAddPO = () => {
     setEditingPOId(null);
+    setNewPoId(crypto.randomUUID());
     setIsPOViewOnly(false);
     setPoForm({ supplier_id: '', project_id: '', date: new Date().toISOString().split('T')[0], shipping_cost: 0, notes: '' });
     setPoItems([]);
@@ -226,6 +229,7 @@ export default function Purchase() {
 
   const openEditPO = (po: PurchaseOrder, viewOnly = false) => {
     setEditingPOId(po.id);
+    setNewPoId(null);
     setIsPOViewOnly(viewOnly);
     setPoForm({
       supplier_id: po.supplier_id,
@@ -327,6 +331,7 @@ export default function Purchase() {
         toast.success('PO berhasil diupdate!');
       } else {
         await provider.getPurchaseOrderRepository().createPurchaseOrder({
+          id: newPoId,
           organization_id: profile?.organization_id,
           po_number: poNumber,
           project_id: poForm.project_id,
@@ -466,8 +471,16 @@ export default function Purchase() {
 
   // ---- Direct Purchase (DP) Methods ----
   const openAddDP = () => {
-    setDpForm({ supplier_id: '', project_id: '', date: new Date().toISOString().split('T')[0], location_id: '', cash_bank_id: '', notes: '' });
+    setDpForm({
+      date: new Date().toISOString().split('T')[0],
+      location_id: '',
+      cash_bank_id: '',
+      supplier_id: '',
+      project_id: '',
+      notes: ''
+    });
     setDpItems([{ item_id: '', qty_ordered: 1, unit_price: 0, discount: 0, subtotal: 0 }]);
+    setNewDpId(crypto.randomUUID());
     setIsDPModalOpen(true);
   };
 
@@ -507,7 +520,7 @@ export default function Purchase() {
     }
 
     try {
-      const txId = crypto.randomUUID();
+      const txId = newDpId || crypto.randomUUID();
       const totalAmount = getDPTotalAmount();
       
       // 1. Process Stock In for each item
@@ -1012,11 +1025,11 @@ export default function Purchase() {
 
           </fieldset>
 
-          {editingPOId && (
+          {(editingPOId || newPoId) && (
             <div className="mt-6 pt-4 border-t border-slate-200">
               <AttachmentUploader
                 entityType="purchase_order"
-                entityId={editingPOId}
+                entityId={editingPOId || newPoId || ''}
                 organizationId={profile?.organization_id || ''}
               />
             </div>
@@ -1207,7 +1220,17 @@ export default function Purchase() {
             <textarea rows={2} value={dpForm.notes} onChange={e => setDpForm({...dpForm, notes: e.target.value})} className="mt-1 block w-full rounded-md border-0 py-1.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 sm:text-sm" placeholder="Misal: Beli paku dan palu di material sumber jaya..." />
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 mt-6 border-t">
+          {newDpId && (
+            <div className="mt-6 pt-4 border-t border-slate-200">
+              <AttachmentUploader
+                entityType="inventory_movement"
+                entityId={newDpId}
+                organizationId={profile?.organization_id || ''}
+              />
+            </div>
+          )}
+
+          <div className="flex justify-end gap-3 pt-4 mt-6 border-t border-slate-200">
             <button type="button" onClick={() => setIsDPModalOpen(false)} className="px-4 py-2 text-sm text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50">
               Batal
             </button>
