@@ -41,6 +41,7 @@ export default function Purchase() {
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<SupplierCategory | 'All'>('All');
   const [selectedSupplierIds, setSelectedSupplierIds] = useState<string[]>([]);
+  const [selectedPOIds, setSelectedPOIds] = useState<string[]>([]);
 
   // Supplier Form
   const [supForm, setSupForm] = useState<Partial<Supplier>>({
@@ -619,12 +620,12 @@ export default function Purchase() {
                     const { data: allPOs, error: errPOs } = await supabase.from('purchase_orders').select('*');
                     if (errPOs) throw errPOs;
                     
-                    const posToMigrate = (allPOs || []).filter((p: any) => !p.po_number?.includes('PO-202607-001'));
-                    if (!posToMigrate || posToMigrate.length === 0) return alert(`Tidak ada PO yang bisa dimigrasi. Total semua PO di sistem: ${allPOs?.length || 0}`);
+                    const posToMigrate = allPOs?.filter(p => selectedPOIds.includes(p.id)) || [];
+                    if (posToMigrate.length === 0) return alert('Silakan centang PO yang ingin dimigrasi terlebih dahulu di tabel bawah.');
                     
                     const { data: cashAccounts } = await supabase.from('cash_bank_accounts').select('*').limit(1);
                     const defaultCashBank = cashAccounts?.[0]?.id || null;
-
+                    
                     const { data: locations } = await supabase.from('locations').select('*').limit(1);
                     const defaultLocation = locations?.[0]?.id || null;
                     
@@ -684,13 +685,14 @@ export default function Purchase() {
                     alert(`Berhasil memigrasi ${count} PO ke Pembelian Langsung.`);
                     window.location.reload();
                   } catch (e: any) {
-                    alert('Gagal migrasi: ' + e.message);
+                    alert('Gagal migrasi: ' + (e.message || e.toString()));
                   }
                 }
               }}
-              className="inline-flex items-center gap-x-2 rounded-md bg-amber-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-amber-600"
+              className="inline-flex items-center gap-x-2 rounded-md bg-amber-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-amber-600 disabled:opacity-50"
+              disabled={selectedPOIds.length === 0}
             >
-              🚀 Migrate PO ke Tunai
+              🚀 Migrate {selectedPOIds.length > 0 ? `${selectedPOIds.length} PO` : 'PO'} ke Tunai
             </button>
           )}
 
@@ -839,6 +841,17 @@ export default function Purchase() {
           <table className="min-w-full divide-y divide-slate-200">
             <thead className="bg-slate-50">
               <tr>
+                <th scope="col" className="w-12 px-3 py-3.5 text-center">
+                  <input 
+                    type="checkbox" 
+                    className="rounded border-slate-300 text-brand-600 focus:ring-brand-600"
+                    onChange={(e) => {
+                      if (e.target.checked) setSelectedPOIds(sortedPOs.map(po => po.id));
+                      else setSelectedPOIds([]);
+                    }}
+                    checked={sortedPOs.length > 0 && selectedPOIds.length === sortedPOs.length}
+                  />
+                </th>
                 <th scope="col" onClick={() => sortPO('po_number')} className="cursor-pointer py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-slate-900 hover:bg-slate-100">Nomor PO <SortIcon columnKey="po_number" sortConfig={poSortConfig} /></th>
                 <th scope="col" onClick={() => sortPO('date')} className="cursor-pointer px-3 py-3.5 text-left text-sm font-semibold text-slate-900 hover:bg-slate-100">Tanggal <SortIcon columnKey="date" sortConfig={poSortConfig} /></th>
                 <th scope="col" onClick={() => sortPO('supplier_id')} className="cursor-pointer px-3 py-3.5 text-left text-sm font-semibold text-slate-900 hover:bg-slate-100">Supplier <SortIcon columnKey="supplier_id" sortConfig={poSortConfig} /></th>
@@ -850,7 +863,18 @@ export default function Purchase() {
             </thead>
             <tbody className="divide-y divide-slate-200 bg-white">
               {sortedPOs.map((po) => (
-                <tr key={po.id}>
+                <tr key={po.id} className={selectedPOIds.includes(po.id) ? 'bg-amber-50' : ''}>
+                  <td className="whitespace-nowrap px-3 py-4 text-center">
+                    <input 
+                      type="checkbox" 
+                      className="rounded border-slate-300 text-brand-600 focus:ring-brand-600"
+                      checked={selectedPOIds.includes(po.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) setSelectedPOIds(prev => [...prev, po.id]);
+                        else setSelectedPOIds(prev => prev.filter(id => id !== po.id));
+                      }}
+                    />
+                  </td>
                   <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-slate-900">{po.po_number}</td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500">{new Date(po.date || (po as any).po_date).toLocaleDateString('id-ID')}</td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-900">{getSupplierName(po.supplier_id)}</td>
