@@ -59,6 +59,9 @@ export default function Purchase() {
   const [receiveLocationId, setReceiveLocationId] = useState('');
   const [receiptResult, setReceiptResult] = useState<{receipt_id: string, items: any[]} | null>(null);
 
+  // Direct Purchases History
+  const [directPurchases, setDirectPurchases] = useState<any[]>([]);
+
   // Direct Purchase Form
   const [isDPModalOpen, setIsDPModalOpen] = useState(false);
   const [dpForm, setDpForm] = useState({
@@ -96,6 +99,26 @@ export default function Purchase() {
     const itms = await provider.getItemRepository().listItems();
     const locs = await provider.getInventoryLocationRepository().listLocations();
 
+    const itRaw = await provider.getRepository<any>('inventory_transactions').list();
+    const dpRaw = itRaw.filter((it: any) => it.reference_type === 'Pembelian Tunai');
+    const dpMap = new Map<string, any>();
+    dpRaw.forEach((it: any) => {
+      const ref = it.transaction_id || it.reference_number;
+      if (!dpMap.has(ref)) {
+        dpMap.set(ref, {
+          id: ref,
+          date: it.date,
+          reference_number: it.reference_number,
+          notes: it.notes,
+          total_amount: 0,
+          items: []
+        });
+      }
+      const dp = dpMap.get(ref);
+      dp.total_amount += (it.total_value || 0);
+      dp.items.push(it);
+    });
+
     setSuppliers(sups);
     setPurchaseOrders(pos);
     setPoItemsAll(poItems);
@@ -103,6 +126,7 @@ export default function Purchase() {
     setProjects(projs.filter((p: any) => p.status === 'Aktif'));
     setItems(itms);
     setLocations(locs);
+    setDirectPurchases(Array.from(dpMap.values()).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
   };
 
   // ---- Supplier Methods ----
@@ -713,6 +737,14 @@ export default function Purchase() {
           >
             Purchase Orders
           </button>
+          <button
+            onClick={() => setActiveTab('dp-history')}
+            className={`whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium ${
+              activeTab === 'dp-history' ? 'border-brand-500 text-brand-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
+            }`}
+          >
+            Riwayat Pembelian Langsung
+          </button>
         </nav>
       </div>
 
@@ -738,7 +770,7 @@ export default function Purchase() {
           <input
             type="text"
             className="block w-full rounded-md border-0 py-1.5 pl-10 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-600 sm:text-sm sm:leading-6"
-            placeholder={activeTab === 'supplier' ? "Cari nama atau kode supplier..." : "Cari nomor PO..."}
+            placeholder={activeTab === 'supplier' ? "Cari nama atau kode supplier..." : (activeTab === 'po' ? "Cari nomor PO..." : "Cari referensi...")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -867,6 +899,36 @@ export default function Purchase() {
               ))}
               {sortedPOs.length === 0 && (
                 <tr><td colSpan={7} className="py-8 text-center text-sm text-slate-500">Tidak ada PO ditemukan.</td></tr>
+              )}
+            </tbody>
+          </table>
+        ) : (
+          <table className="min-w-full divide-y divide-slate-200">
+            <thead className="bg-slate-50">
+              <tr>
+                <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-slate-900">No Referensi</th>
+                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">Tanggal</th>
+                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">Catatan</th>
+                <th scope="col" className="px-3 py-3.5 text-right text-sm font-semibold text-slate-900">Total (Rp)</th>
+                <th scope="col" className="px-3 py-3.5 text-center text-sm font-semibold text-slate-900">Jml Item</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200 bg-white">
+              {directPurchases
+                .filter(dp => dp.reference_number?.toLowerCase().includes(search.toLowerCase()) || dp.notes?.toLowerCase().includes(search.toLowerCase()))
+                .map((dp) => (
+                <tr key={dp.id}>
+                  <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-slate-900">{dp.reference_number}</td>
+                  <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500">{new Date(dp.date).toLocaleDateString('id-ID')}</td>
+                  <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500 truncate max-w-[200px]">{dp.notes || '-'}</td>
+                  <td className="whitespace-nowrap px-3 py-4 text-sm font-medium text-slate-900 text-right">{dp.total_amount.toLocaleString('id-ID')}</td>
+                  <td className="whitespace-nowrap px-3 py-4 text-sm text-center text-slate-500">
+                    <Badge variant="info">{dp.items.length} item</Badge>
+                  </td>
+                </tr>
+              ))}
+              {directPurchases.length === 0 && (
+                <tr><td colSpan={5} className="py-8 text-center text-sm text-slate-500">Tidak ada riwayat pembelian langsung.</td></tr>
               )}
             </tbody>
           </table>
