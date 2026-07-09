@@ -108,7 +108,7 @@ export default function Purchase() {
         if (!dpMap.has(ref)) {
           dpMap.set(ref, {
             id: ref,
-            date: it.date,
+            date: it.date || it.movement_date || it.created_at,
             reference_number: it.reference_number,
             notes: it.notes,
             total_amount: 0,
@@ -116,7 +116,7 @@ export default function Purchase() {
           });
         }
         const dp = dpMap.get(ref);
-        dp.total_amount += (it.total_value || 0);
+        dp.total_amount += (it.total_value || (it.quantity * it.unit_cost) || 0);
         dp.items.push(it);
       });
 
