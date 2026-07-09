@@ -577,32 +577,42 @@ export default function Purchase() {
           
           {activeTab === 'po' && (
             <button
-              onClick={() => {
+              onClick={async () => {
                 if (window.confirm('Migrasi otomatis: Semua PO (selain PO-202607-001) akan dipindah ke Pembelian Langsung. Lanjutkan?')) {
                   try {
-                    const dataStr = localStorage.getItem('sbs_data');
-                    if (!dataStr) return alert('No local data found!');
-                    const db = JSON.parse(dataStr);
+                    const providerStr = localStorage.getItem('VITE_DATA_PROVIDER') || import.meta.env.VITE_DATA_PROVIDER || 'local';
+                    if (providerStr !== 'supabase') {
+                      return alert('Migration script currently only configured for Supabase. Current provider: ' + providerStr);
+                    }
                     
-                    const posToMigrate = db.purchase_orders.filter((po: any) => po.po_number !== 'PO-202607-001');
-                    if (posToMigrate.length === 0) return alert('Tidak ada PO yang bisa dimigrasi.');
+                    const { supabase } = await import('../lib/supabase');
+                    
+                    const { data: posToMigrate, error: errPOs } = await supabase.from('purchase_orders').select('*').neq('po_number', 'PO-202607-001');
+                    if (errPOs) throw errPOs;
+                    if (!posToMigrate || posToMigrate.length === 0) return alert('Tidak ada PO yang bisa dimigrasi (atau semua sudah tuntas).');
+                    
+                    const { data: cashAccounts } = await supabase.from('cash_bank_accounts').select('*').limit(1);
+                    const defaultCashBank = cashAccounts?.[0]?.id || null;
+
+                    const { data: locations } = await supabase.from('locations').select('*').limit(1);
+                    const defaultLocation = locations?.[0]?.id || null;
                     
                     let count = 0;
-                    posToMigrate.forEach((po: any) => {
-                      const poItems = db.purchase_order_items.filter((i: any) => i.po_id === po.id);
-                      const totalAmount = poItems.reduce((sum: number, item: any) => sum + ((item.qty_ordered || 0) * (item.unit_price || 0) - (item.discount || 0)), 0);
+                    for (const po of posToMigrate) {
+                      const { data: poItems } = await supabase.from('purchase_order_items').select('*').eq('po_id', po.id);
+                      if (!poItems) continue;
                       
-                      const defaultCashBank = db.cash_bank_accounts?.[0]?.id || 'unknown';
+                      const totalAmount = poItems.reduce((sum: number, item: any) => sum + ((item.qty_ordered || 0) * (item.unit_price || 0) - (item.discount || 0)), 0);
                       const txId = crypto.randomUUID();
                       
-                      poItems.forEach((item: any) => {
-                        db.inventory_transactions.push({
-                          id: crypto.randomUUID(),
+                      // Create Inventory Transactions
+                      for (const item of poItems) {
+                        await supabase.from('inventory_transactions').insert({
                           organization_id: po.organization_id,
                           project_id: po.project_id || null,
-                          location_id: db.locations?.[0]?.id || 'unknown',
+                          location_id: defaultLocation,
                           item_id: item.item_id,
-                          date: po.date || po.po_date,
+                          date: po.date || po.po_date || new Date().toISOString(),
                           direction: 'IN',
                           quantity: item.qty_ordered,
                           unit_cost: item.unit_price,
@@ -610,40 +620,40 @@ export default function Purchase() {
                           reference_type: 'Pembelian Tunai',
                           reference_number: `DP-${Date.now()}-${Math.floor(Math.random()*1000)}`,
                           notes: po.notes || 'Migrasi dari PO',
-                          transaction_id: txId,
-                          created_at: new Date().toISOString()
+                          transaction_id: txId
                         });
-                      });
+                      }
                       
-                      db.cash_bank_mutations.push({
-                          id: crypto.randomUUID(),
-                          organization_id: po.organization_id,
-                          mutation_date: po.date || po.po_date,
-                          mutation_type: 'OUT',
-                          from_cash_bank_id: defaultCashBank,
-                          to_cash_bank_id: null,
-                          amount: totalAmount,
-                          notes: `Pembelian Langsung - Migrasi dari PO ${po.po_number}`,
-                          project_id: po.project_id || null,
-                          reference_type: 'Pembelian Stok',
-                          reference_id: txId,
-                          source_module: 'Purchase',
-                          created_at: new Date().toISOString()
-                      });
+                      // Create Cash Mutation
+                      if (defaultCashBank) {
+                        await supabase.from('cash_bank_mutations').insert({
+                            organization_id: po.organization_id,
+                            mutation_date: po.date || po.po_date || new Date().toISOString(),
+                            mutation_type: 'OUT',
+                            from_cash_bank_id: defaultCashBank,
+                            to_cash_bank_id: null,
+                            amount: totalAmount,
+                            notes: `Pembelian Langsung - Migrasi dari PO ${po.po_number}`,
+                            project_id: po.project_id || null,
+                            reference_type: 'Pembelian Stok',
+                            reference_id: txId,
+                            source_module: 'Purchase'
+                        });
+                      }
                       
-                      db.purchase_orders = db.purchase_orders.filter((p: any) => p.id !== po.id);
-                      db.purchase_order_items = db.purchase_order_items.filter((i: any) => i.po_id !== po.id);
-                      db.purchase_receipts = db.purchase_receipts.filter((r: any) => r.po_id !== po.id);
-                      db.supplier_bills = db.supplier_bills.filter((b: any) => b.reference_id !== po.id);
+                      // Delete old PO data (order matters for foreign keys)
+                      await supabase.from('purchase_receipts').delete().eq('po_id', po.id);
+                      await supabase.from('supplier_bills').delete().eq('reference_id', po.id);
+                      await supabase.from('purchase_order_items').delete().eq('po_id', po.id);
+                      await supabase.from('purchase_orders').delete().eq('id', po.id);
                       
                       count++;
-                    });
+                    }
                     
-                    localStorage.setItem('sbs_data', JSON.stringify(db));
                     alert(`Berhasil memigrasi ${count} PO ke Pembelian Langsung.`);
                     window.location.reload();
-                  } catch (e) {
-                    alert('Gagal migrasi: ' + e);
+                  } catch (e: any) {
+                    alert('Gagal migrasi: ' + e.message);
                   }
                 }
               }}
