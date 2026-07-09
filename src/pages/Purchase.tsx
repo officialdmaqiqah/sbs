@@ -712,8 +712,22 @@ export default function Purchase() {
                     const { data: poItems } = await supabase.from('purchase_order_items').select('*, items(name, category)').eq('po_id', po.id);
                     if (!poItems) return alert('Item PO tidak ditemukan.');
                     
-                    const nonAyamItems = poItems.filter((i: any) => i.items?.category !== 'Ayam' && !i.items?.name?.toLowerCase().includes('ayam'));
-                    if (nonAyamItems.length === 0) return alert('Tidak ada item selain Ayam di PO ini.');
+                    const nonAyamItems = poItems.filter((i: any) => {
+                      const cat = i.items?.category?.toLowerCase() || '';
+                      const name = i.items?.name?.toLowerCase() || '';
+                      // HANYA abaikan jika kategori BENAR-BENAR "ayam" ATAU nama BENAR-BENAR "ayam 1500" dll, tapi jangan abaikan "pakan ayam"
+                      if (cat === 'ayam' || cat === 'doc ayam' || name === 'ayam') return false;
+                      // Jika namanya "pakan ayam", "obat ayam", "kandang ayam", ini BUKAN ayam hidup
+                      if (name.includes('pakan') || name.includes('obat') || name.includes('vitamin') || name.includes('kandang')) return true;
+                      
+                      // Default, pisahkan jika bukan ayam hidup
+                      return !name.includes('ayam hidup') && !name.match(/^ayam\s*\d*$/);
+                    });
+
+                    if (nonAyamItems.length === 0) {
+                      const itemNames = poItems.map((i: any) => i.items?.name + ' (' + i.items?.category + ')').join(', ');
+                      return alert('Tidak ada item selain Ayam hidup di PO ini. Item yang ada: ' + itemNames);
+                    }
 
                     const { data: cashAccounts } = await supabase.from('cash_bank_accounts').select('*').limit(1);
                     const defaultCashBank = cashAccounts?.[0]?.id || null;
