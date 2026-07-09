@@ -574,6 +574,85 @@ export default function Purchase() {
               <RotateCcw className="-ml-0.5 mr-2 h-4 w-4" /> Refresh
             </button>
           )}
+          
+          {activeTab === 'po' && (
+            <button
+              onClick={() => {
+                if (window.confirm('Migrasi otomatis: Semua PO (selain PO-202607-001) akan dipindah ke Pembelian Langsung. Lanjutkan?')) {
+                  try {
+                    const dataStr = localStorage.getItem('sbs_data');
+                    if (!dataStr) return alert('No local data found!');
+                    const db = JSON.parse(dataStr);
+                    
+                    const posToMigrate = db.purchase_orders.filter((po: any) => po.po_number !== 'PO-202607-001');
+                    if (posToMigrate.length === 0) return alert('Tidak ada PO yang bisa dimigrasi.');
+                    
+                    let count = 0;
+                    posToMigrate.forEach((po: any) => {
+                      const poItems = db.purchase_order_items.filter((i: any) => i.po_id === po.id);
+                      const totalAmount = poItems.reduce((sum: number, item: any) => sum + ((item.qty_ordered || 0) * (item.unit_price || 0) - (item.discount || 0)), 0);
+                      
+                      const defaultCashBank = db.cash_bank_accounts?.[0]?.id || 'unknown';
+                      const txId = crypto.randomUUID();
+                      
+                      poItems.forEach((item: any) => {
+                        db.inventory_transactions.push({
+                          id: crypto.randomUUID(),
+                          organization_id: po.organization_id,
+                          project_id: po.project_id || null,
+                          location_id: db.locations?.[0]?.id || 'unknown',
+                          item_id: item.item_id,
+                          date: po.date || po.po_date,
+                          direction: 'IN',
+                          quantity: item.qty_ordered,
+                          unit_cost: item.unit_price,
+                          total_value: item.qty_ordered * item.unit_price,
+                          reference_type: 'Pembelian Tunai',
+                          reference_number: `DP-${Date.now()}-${Math.floor(Math.random()*1000)}`,
+                          notes: po.notes || 'Migrasi dari PO',
+                          transaction_id: txId,
+                          created_at: new Date().toISOString()
+                        });
+                      });
+                      
+                      db.cash_bank_mutations.push({
+                          id: crypto.randomUUID(),
+                          organization_id: po.organization_id,
+                          mutation_date: po.date || po.po_date,
+                          mutation_type: 'OUT',
+                          from_cash_bank_id: defaultCashBank,
+                          to_cash_bank_id: null,
+                          amount: totalAmount,
+                          notes: `Pembelian Langsung - Migrasi dari PO ${po.po_number}`,
+                          project_id: po.project_id || null,
+                          reference_type: 'Pembelian Stok',
+                          reference_id: txId,
+                          source_module: 'Purchase',
+                          created_at: new Date().toISOString()
+                      });
+                      
+                      db.purchase_orders = db.purchase_orders.filter((p: any) => p.id !== po.id);
+                      db.purchase_order_items = db.purchase_order_items.filter((i: any) => i.po_id !== po.id);
+                      db.purchase_receipts = db.purchase_receipts.filter((r: any) => r.po_id !== po.id);
+                      db.supplier_bills = db.supplier_bills.filter((b: any) => b.reference_id !== po.id);
+                      
+                      count++;
+                    });
+                    
+                    localStorage.setItem('sbs_data', JSON.stringify(db));
+                    alert(`Berhasil memigrasi ${count} PO ke Pembelian Langsung.`);
+                    window.location.reload();
+                  } catch (e) {
+                    alert('Gagal migrasi: ' + e);
+                  }
+                }
+              }}
+              className="inline-flex items-center gap-x-2 rounded-md bg-amber-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-amber-600"
+            >
+              🚀 Migrate PO ke Tunai
+            </button>
+          )}
+
           {activeTab === 'supplier' ? (
             <button
               onClick={openAddSupplier}
