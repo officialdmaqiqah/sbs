@@ -100,7 +100,7 @@ export default function Purchase() {
       const itms = await provider.getItemRepository().listItems();
       const locs = await provider.getInventoryLocationRepository().listLocations();
 
-      const itRaw = await provider.getRepository<any>('inventory_transactions').list();
+      const itRaw = await provider.getRepository<any>('inventory_movements').list();
       const dpRaw = itRaw.filter((it: any) => it.reference_type === 'Pembelian Tunai');
       const dpMap = new Map<string, any>();
       dpRaw.forEach((it: any) => {

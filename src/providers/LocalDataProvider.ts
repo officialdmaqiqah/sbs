@@ -249,22 +249,6 @@ class LocalInventoryCommandService implements InventoryCommandService {
       });
     }
 
-    // Also emulate inserting into inventory_transactions (used by some queries)
-    (db as any).insert('inventory_transactions', {
-      transaction_id: txId,
-      project_id: projectId,
-      location_id: locationId,
-      item_id: itemId,
-      reference_type: input.referenceType || 'Manual',
-      reference_number: input.referenceNumber,
-      direction: direction,
-      quantity: quantity,
-      unit_cost: input.unitCost || 0,
-      total_value: quantity * (input.unitCost || 0),
-      notes: input.notes,
-      date: input.date || input.movementDate || new Date().toISOString()
-    });
-
     return { id: newId, transaction_id: txId, movement_id: newId, stock_before: currentStock, stock_after: newStock };
   }
 }
