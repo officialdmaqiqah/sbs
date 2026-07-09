@@ -20,7 +20,7 @@ const SUPPLIER_CATEGORIES: SupplierCategory[] = ['Ayam', 'Bahan Kandang', 'Bahan
 
 export default function Purchase() {
   const { profile } = useAuth();
-  const [activeTab, setActiveTab] = useState<'supplier' | 'po'>('po');
+  const [activeTab, setActiveTab] = useState<'supplier' | 'po' | 'dp-history'>('po');
   
   // Data State
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -828,7 +828,7 @@ export default function Purchase() {
               )}
             </tbody>
           </table>
-        ) : (
+        ) : activeTab === 'po' ? (
           <table className="min-w-full divide-y divide-slate-200">
             <thead className="bg-slate-50">
               <tr>
