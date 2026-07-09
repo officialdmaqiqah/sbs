@@ -663,14 +663,23 @@ export default function Purchase() {
               Tambah Supplier
             </button>
           ) : (
-            <button
-              onClick={openAddPO}
-              data-testid="btn-add-po"
-              className="inline-flex items-center gap-x-2 rounded-md bg-brand-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-500"
-            >
-              <Plus className="-ml-0.5 h-5 w-5" />
-              Buat PO Baru
-            </button>
+            <>
+              <button
+                onClick={openAddDP}
+                className="inline-flex items-center gap-x-2 rounded-md bg-sbs-green-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-sbs-green-500"
+              >
+                <Plus className="-ml-0.5 h-5 w-5" />
+                Pembelian Langsung
+              </button>
+              <button
+                onClick={openAddPO}
+                data-testid="btn-add-po"
+                className="inline-flex items-center gap-x-2 rounded-md bg-brand-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-500"
+              >
+                <Plus className="-ml-0.5 h-5 w-5" />
+                Buat PO Baru
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -1076,7 +1085,7 @@ export default function Purchase() {
       </Modal>
 
       {/* Direct Purchase Modal */}
-      <Modal isOpen={isDPModalOpen} onClose={() => setIsDPModalOpen(false)} title="Pembelian Langsung (Tunai)" size="xl">
+      <Modal isOpen={isDPModalOpen} onClose={() => setIsDPModalOpen(false)} title="Pembelian Langsung (Tunai)" maxWidth="max-w-4xl">
         <form onSubmit={handleSaveDP} className="space-y-4 max-h-[80vh] overflow-y-auto px-1 pb-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
