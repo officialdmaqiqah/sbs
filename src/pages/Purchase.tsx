@@ -82,51 +82,56 @@ export default function Purchase() {
   }, []);
 
   const loadData = async () => {
-    const provider = getDataProvider();
-    
-    // Using generic repository for entities without explicit provider contracts yet
-    const sups = await provider.getRepository<Supplier>('suppliers').list();
-    const pos = await provider.getRepository<PurchaseOrder>('purchase_orders').list();
-    const poItemsRaw = await provider.getRepository<any>('purchase_order_items').list();
-    const poItems = poItemsRaw.map((i: any) => ({
-      ...i,
-      qty_ordered: i.quantity ?? i.qty_ordered,
-      qty_received: i.received_quantity ?? i.qty_received,
-    }));
-    const bills = await provider.getRepository<any>('supplier_bills').list();
-    
-    const projs = await provider.getProjectRepository().listProjects();
-    const itms = await provider.getItemRepository().listItems();
-    const locs = await provider.getInventoryLocationRepository().listLocations();
+    try {
+      const provider = getDataProvider();
+      
+      // Using generic repository for entities without explicit provider contracts yet
+      const sups = await provider.getRepository<Supplier>('suppliers').list();
+      const pos = await provider.getRepository<PurchaseOrder>('purchase_orders').list();
+      const poItemsRaw = await provider.getRepository<any>('purchase_order_items').list();
+      const poItems = poItemsRaw.map((i: any) => ({
+        ...i,
+        qty_ordered: i.quantity ?? i.qty_ordered,
+        qty_received: i.received_quantity ?? i.qty_received,
+      }));
+      const bills = await provider.getRepository<any>('supplier_bills').list();
+      
+      const projs = await provider.getProjectRepository().listProjects();
+      const itms = await provider.getItemRepository().listItems();
+      const locs = await provider.getInventoryLocationRepository().listLocations();
 
-    const itRaw = await provider.getRepository<any>('inventory_transactions').list();
-    const dpRaw = itRaw.filter((it: any) => it.reference_type === 'Pembelian Tunai');
-    const dpMap = new Map<string, any>();
-    dpRaw.forEach((it: any) => {
-      const ref = it.transaction_id || it.reference_number;
-      if (!dpMap.has(ref)) {
-        dpMap.set(ref, {
-          id: ref,
-          date: it.date,
-          reference_number: it.reference_number,
-          notes: it.notes,
-          total_amount: 0,
-          items: []
-        });
-      }
-      const dp = dpMap.get(ref);
-      dp.total_amount += (it.total_value || 0);
-      dp.items.push(it);
-    });
+      const itRaw = await provider.getRepository<any>('inventory_transactions').list();
+      const dpRaw = itRaw.filter((it: any) => it.reference_type === 'Pembelian Tunai');
+      const dpMap = new Map<string, any>();
+      dpRaw.forEach((it: any) => {
+        const ref = it.transaction_id || it.reference_number;
+        if (!dpMap.has(ref)) {
+          dpMap.set(ref, {
+            id: ref,
+            date: it.date,
+            reference_number: it.reference_number,
+            notes: it.notes,
+            total_amount: 0,
+            items: []
+          });
+        }
+        const dp = dpMap.get(ref);
+        dp.total_amount += (it.total_value || 0);
+        dp.items.push(it);
+      });
 
-    setSuppliers(sups);
-    setPurchaseOrders(pos);
-    setPoItemsAll(poItems);
-    setSupplierBills(bills);
-    setProjects(projs.filter((p: any) => p.status === 'Aktif'));
-    setItems(itms);
-    setLocations(locs);
-    setDirectPurchases(Array.from(dpMap.values()).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+      setSuppliers(sups);
+      setPurchaseOrders(pos);
+      setPoItemsAll(poItems);
+      setSupplierBills(bills);
+      setProjects(projs.filter((p: any) => p.status === 'Aktif'));
+      setItems(itms);
+      setLocations(locs);
+      setDirectPurchases(Array.from(dpMap.values()).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+    } catch (err: any) {
+      console.error('Error loading data:', err);
+      toast.error('Gagal memuat data: ' + err.message);
+    }
   };
 
   // ---- Supplier Methods ----
