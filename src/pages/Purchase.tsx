@@ -616,9 +616,11 @@ export default function Purchase() {
                     
                     const { supabase } = await import('../lib/supabase');
                     
-                    const { data: posToMigrate, error: errPOs } = await supabase.from('purchase_orders').select('*').neq('po_number', 'PO-202607-001');
+                    const { data: allPOs, error: errPOs } = await supabase.from('purchase_orders').select('*');
                     if (errPOs) throw errPOs;
-                    if (!posToMigrate || posToMigrate.length === 0) return alert('Tidak ada PO yang bisa dimigrasi (atau semua sudah tuntas).');
+                    
+                    const posToMigrate = (allPOs || []).filter((p: any) => !p.po_number?.includes('PO-202607-001'));
+                    if (!posToMigrate || posToMigrate.length === 0) return alert(`Tidak ada PO yang bisa dimigrasi. Total semua PO di sistem: ${allPOs?.length || 0}`);
                     
                     const { data: cashAccounts } = await supabase.from('cash_bank_accounts').select('*').limit(1);
                     const defaultCashBank = cashAccounts?.[0]?.id || null;
